@@ -44,14 +44,14 @@ export default function NewComplaint() {
 
   function set(key, val) { setForm(f => ({ ...f, [key]: val })); }
 
-  // ── Validation ────────────────────────────────────────────────────────────
+  // Validation
   function validate() {
     const e = {};
     if (step === 0) {
       if (!form.account)                 e.account = 'Account number is required.';
       else if (form.account.length > 20) e.account = 'Max 20 characters.';
       if (!form.mobile)                  e.mobile  = 'Mobile number is required.';
-      else if (!isValidMobile(form.mobile)) e.mobile = 'Enter valid 10-digit mobile starting with 6–9.';
+      else if (!isValidMobile(form.mobile)) e.mobile = 'Enter valid 10-digit mobile starting with 6-9.';
       if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email format.';
     }
     if (step === 1) {
@@ -67,7 +67,7 @@ export default function NewComplaint() {
   function next() { if (validate()) setStep(s => s + 1); }
   function back() { setStep(s => s - 1); setErrors({}); }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // Submit
   async function handleSubmit() {
     setSubmitting(true);
     const payload = {
@@ -92,232 +92,420 @@ export default function NewComplaint() {
 
   const today = new Date().toISOString().split('T')[0];
 
+  const inputStyle = (hasError) => ({
+    width: '100%',
+    padding: '14px 16px',
+    borderRadius: 12,
+    fontSize: 15,
+    border: `2px solid ${hasError ? '#EF4444' : '#E2E8F0'}`,
+    outline: 'none',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+    fontFamily: 'inherit',
+  });
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#374151',
+    marginBottom: 8,
+  };
+
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 16px' }}>
+    <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px' }}>
       <StepProgressBar steps={STEPS} current={step} />
 
-      <div style={{ background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 1px 8px rgba(0,0,0,0.07)' }}>
+      <div style={{
+        background: '#fff',
+        borderRadius: 20,
+        padding: 40,
+        boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+        marginTop: 24,
+      }}>
 
-        {/* ── STEP 0: Your Details ── */}
+        {/* STEP 0: Your Details */}
         {step === 0 && (
-          <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 24 }}>
+          <div className="fade-in">
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0B1629', marginBottom: 8 }}>
               Your Details
             </h2>
+            <p style={{ fontSize: 14, color: '#64748B', marginBottom: 32 }}>
+              Please provide your account information to file a complaint
+            </p>
 
             {[
-              { key: 'account', label: 'Account Number', type: 'text', placeholder: 'Your bank account number', max: 20 },
-              { key: 'mobile',  label: 'Mobile Number',  type: 'tel',  placeholder: '10-digit number starting with 6–9' },
-              { key: 'email',   label: 'Email Address (Optional)', type: 'email', placeholder: 'your@email.com' },
+              { key: 'account', label: 'Account Number', type: 'text', placeholder: 'Enter your bank account number', max: 20, icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> },
+              { key: 'mobile', label: 'Mobile Number', type: 'tel', placeholder: '10-digit mobile starting with 6-9', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> },
+              { key: 'email', label: 'Email Address (Optional)', type: 'email', placeholder: 'your@email.com', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> },
             ].map(f => (
-              <div key={f.key} style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                  {f.label}
-                </label>
-                <input
-                  type={f.type} value={form[f.key]} maxLength={f.max}
-                  onChange={e => set(f.key, e.target.value)}
-                  placeholder={f.placeholder}
-                  style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 14,
-                    border: `1.5px solid ${errors[f.key] ? '#DC2626' : '#D1D5DB'}`,
-                    outline: 'none', boxSizing: 'border-box',
-                  }}
-                />
-                {errors[f.key] && <p style={{ color: '#DC2626', fontSize: 12, marginTop: 4 }}>{errors[f.key]}</p>}
+              <div key={f.key} style={{ marginBottom: 24 }}>
+                <label style={labelStyle}>{f.label}</label>
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
+                    {f.icon}
+                  </div>
+                  <input
+                    type={f.type}
+                    value={form[f.key]}
+                    maxLength={f.max}
+                    onChange={e => set(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    style={{ ...inputStyle(errors[f.key]), paddingLeft: 48 }}
+                  />
+                </div>
+                {errors[f.key] && (
+                  <p style={{ color: '#EF4444', fontSize: 13, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {errors[f.key]}
+                  </p>
+                )}
               </div>
             ))}
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Preferred Language
-              </label>
-              <select value={form.lang} onChange={e => set('lang', e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #D1D5DB', fontSize: 14 }}>
+            <div style={{ marginBottom: 24 }}>
+              <label style={labelStyle}>Preferred Language</label>
+              <select
+                value={form.lang}
+                onChange={e => set('lang', e.target.value)}
+                style={inputStyle(false)}
+              >
                 {LANGUAGES.map(l => <option key={l}>{l}</option>)}
               </select>
             </div>
           </div>
         )}
 
-        {/* ── STEP 1: Complaint Details ── */}
+        {/* STEP 1: Complaint Details */}
         {step === 1 && (
-          <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 24 }}>
+          <div className="fade-in">
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0B1629', marginBottom: 8 }}>
               Complaint Details
             </h2>
+            <p style={{ fontSize: 14, color: '#64748B', marginBottom: 32 }}>
+              Describe your issue in detail so we can help you better
+            </p>
 
             {/* Product category */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Product Category *
-              </label>
-              <select value={form.product} onChange={e => set('product', e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1.5px solid ${errors.product ? '#DC2626' : '#D1D5DB'}`, fontSize: 14 }}>
+            <div style={{ marginBottom: 24 }}>
+              <label style={labelStyle}>Product Category *</label>
+              <select
+                value={form.product}
+                onChange={e => set('product', e.target.value)}
+                style={inputStyle(errors.product)}
+              >
                 <option value="">Select a product</option>
                 {PRODUCT_CATEGORIES.map(p => <option key={p}>{p}</option>)}
               </select>
-              {errors.product && <p style={{ color: '#DC2626', fontSize: 12, marginTop: 4 }}>{errors.product}</p>}
-              {form.product === 'NACH Mandate' && (
-                <p style={{ fontSize: 12, color: '#6B7280', background: '#F8F9FA', borderRadius: 8, padding: '6px 10px', marginTop: 6 }}>
-                  ℹ National Automated Clearing House — handles EMI and recurring payments
+              {errors.product && (
+                <p style={{ color: '#EF4444', fontSize: 13, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {errors.product}
                 </p>
               )}
+              {form.product === 'NACH Mandate' && (
+                <div style={{ fontSize: 13, color: '#64748B', background: '#F8FAFC', borderRadius: 10, padding: '10px 14px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C6B5" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  National Automated Clearing House - handles EMI and recurring payments
+                </div>
+              )}
               {form.product === 'PMJDY Account' && (
-                <p style={{ fontSize: 12, color: '#6B7280', background: '#F8F9FA', borderRadius: 8, padding: '6px 10px', marginTop: 6 }}>
-                  ℹ Pradhan Mantri Jan-Dhan Yojana — government basic savings accounts
-                </p>
+                <div style={{ fontSize: 13, color: '#64748B', background: '#F8FAFC', borderRadius: 10, padding: '10px 14px', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C6B5" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  Pradhan Mantri Jan-Dhan Yojana - government basic savings accounts
+                </div>
               )}
             </div>
 
-            {/* Description with live char counter */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Complaint Description *
-              </label>
+            {/* Description */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={labelStyle}>Complaint Description *</label>
               <textarea
                 value={form.desc}
                 onChange={e => set('desc', e.target.value)}
-                placeholder="Describe your complaint in detail (minimum 30 characters)…"
-                maxLength={500} rows={5}
+                placeholder="Describe your complaint in detail (minimum 30 characters)..."
+                maxLength={500}
+                rows={5}
                 style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 14,
-                  border: `1.5px solid ${errors.desc ? '#DC2626' : '#D1D5DB'}`,
-                  resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6,
+                  ...inputStyle(errors.desc),
+                  resize: 'vertical',
+                  lineHeight: 1.6,
                 }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                {errors.desc
-                  ? <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{errors.desc}</p>
-                  : <span />}
-                <span style={{ fontSize: 12, color: form.desc.length >= 450 ? '#D97706' : '#9CA3AF' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                {errors.desc ? (
+                  <p style={{ color: '#EF4444', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, margin: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {errors.desc}
+                  </p>
+                ) : <span />}
+                <span style={{ fontSize: 13, color: form.desc.length >= 450 ? '#F59E0B' : '#94A3B8', fontWeight: 500 }}>
                   {form.desc.length} / 500
                 </span>
               </div>
 
               {escalation && (
-                <div style={{ background: '#FFFBEB', border: '1px solid #F59E0B', borderRadius: 10, padding: '12px 16px', marginTop: 10 }}>
-                  <p style={{ fontSize: 13, color: '#92400E', fontWeight: 600, margin: 0 }}>
-                    ⚠ Your complaint mentions a regulatory body. We will treat this as P1 Priority and assign it to a senior agent within the next hour.
-                  </p>
+                <div style={{
+                  background: '#FEF3C7',
+                  border: '1px solid #F59E0B',
+                  borderRadius: 12,
+                  padding: '14px 18px',
+                  marginTop: 16,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}>
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <div>
+                    <p style={{ fontSize: 14, color: '#92400E', fontWeight: 600, margin: 0 }}>
+                      Escalation Detected
+                    </p>
+                    <p style={{ fontSize: 13, color: '#B45309', margin: '4px 0 0' }}>
+                      Your complaint mentions a regulatory body. This will be treated as P1 Priority and assigned to a senior agent within one hour.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                  Date of Incident *
-                </label>
-                <input type="date" value={form.date} max={today}
+                <label style={labelStyle}>Date of Incident *</label>
+                <input
+                  type="date"
+                  value={form.date}
+                  max={today}
                   onChange={e => set('date', e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1.5px solid ${errors.date ? '#DC2626' : '#D1D5DB'}`, fontSize: 14, boxSizing: 'border-box' }} />
-                {errors.date && <p style={{ color: '#DC2626', fontSize: 12, marginTop: 4 }}>{errors.date}</p>}
+                  style={inputStyle(errors.date)}
+                />
+                {errors.date && (
+                  <p style={{ color: '#EF4444', fontSize: 13, marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {errors.date}
+                  </p>
+                )}
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                  Transaction Reference (Optional)
-                </label>
-                <input type="text" value={form.ref}
+                <label style={labelStyle}>Transaction Reference (Optional)</label>
+                <input
+                  type="text"
+                  value={form.ref}
                   onChange={e => set('ref', e.target.value)}
                   placeholder="e.g. UPI/2026/03/15/4821"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #D1D5DB', fontSize: 14, boxSizing: 'border-box' }} />
+                  style={inputStyle(false)}
+                />
               </div>
             </div>
           </div>
         )}
 
-        {/* ── STEP 2: Documents ── */}
+        {/* STEP 2: Documents */}
         {step === 2 && (
-          <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 8 }}>
+          <div className="fade-in">
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0B1629', marginBottom: 8 }}>
               Supporting Documents
             </h2>
-            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 24 }}>
+            <p style={{ fontSize: 14, color: '#64748B', marginBottom: 32 }}>
               Upload any screenshots, statements, or transaction proofs that support your complaint.
             </p>
             <FileUploadArea files={form.files} setFiles={v => set('files', v)} />
           </div>
         )}
 
-        {/* ── STEP 3: Review ── */}
+        {/* STEP 3: Review */}
         {step === 3 && (
-          <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 24 }}>
+          <div className="fade-in">
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#0B1629', marginBottom: 8 }}>
               Review & Submit
             </h2>
+            <p style={{ fontSize: 14, color: '#64748B', marginBottom: 32 }}>
+              Please review your complaint details before submitting
+            </p>
+
             {[
               {
                 heading: 'Your Details',
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
                 rows: [
                   ['Account Number', form.account],
-                  ['Mobile',         form.mobile],
-                  ['Email',          form.email || '—'],
+                  ['Mobile', form.mobile],
+                  ['Email', form.email || '-'],
                   ['Preferred Language', form.lang],
                 ],
               },
               {
                 heading: 'Complaint Details',
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
                 rows: [
-                  ['Product',        form.product],
-                  ['Description',    form.desc],
-                  ['Incident Date',  form.date],
-                  ['Transaction Ref',form.ref || '—'],
+                  ['Product', form.product],
+                  ['Description', form.desc],
+                  ['Incident Date', form.date],
+                  ['Transaction Ref', form.ref || '-'],
                 ],
               },
               {
                 heading: 'Documents',
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>,
                 rows: form.files.length > 0
                   ? form.files.map((f, i) => [`File ${i + 1}`, `${f.name} (${f.size})`])
                   : [['Files', 'None attached']],
               },
             ].map(sec => (
-              <div key={sec.heading} style={{ marginBottom: 20 }}>
-                <div style={{ background: '#0A1628', color: '#fff', padding: '8px 14px', borderRadius: '10px 10px 0 0', fontSize: 13, fontWeight: 700 }}>
+              <div key={sec.heading} style={{ marginBottom: 24 }}>
+                <div style={{
+                  background: '#0B1629',
+                  color: '#fff',
+                  padding: '12px 18px',
+                  borderRadius: '12px 12px 0 0',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  {sec.icon}
                   {sec.heading}
                 </div>
-                <div style={{ border: '1px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 10px 10px' }}>
+                <div style={{ border: '2px solid #E2E8F0', borderTop: 'none', borderRadius: '0 0 12px 12px' }}>
                   {sec.rows.map(([k, v]) => (
-                    <div key={k} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', padding: '10px 14px', borderBottom: '1px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 600 }}>{k}</span>
-                      <span style={{ fontSize: 13, color: '#0A1628', wordBreak: 'break-word' }}>{v}</span>
+                    <div key={k} style={{
+                      display: 'grid',
+                      gridTemplateColumns: '160px 1fr',
+                      padding: '12px 18px',
+                      borderBottom: '1px solid #F1F5F9',
+                    }}>
+                      <span style={{ fontSize: 13, color: '#64748B', fontWeight: 500 }}>{k}</span>
+                      <span style={{ fontSize: 14, color: '#0B1629', wordBreak: 'break-word' }}>{v}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ))}
 
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginTop: 20 }}>
-              <input type="checkbox" checked={form.confirmed} onChange={e => set('confirmed', e.target.checked)} style={{ marginTop: 2 }} />
-              <span style={{ fontSize: 13, color: '#374151' }}>
-                I confirm the information provided is accurate and complete
+            <label style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12,
+              cursor: 'pointer',
+              marginTop: 24,
+              padding: 16,
+              background: form.confirmed ? '#E6FAF8' : '#F8FAFC',
+              borderRadius: 12,
+              border: `2px solid ${form.confirmed ? '#00C6B5' : '#E2E8F0'}`,
+              transition: 'all 0.2s ease',
+            }}>
+              <input
+                type="checkbox"
+                checked={form.confirmed}
+                onChange={e => set('confirmed', e.target.checked)}
+                style={{
+                  width: 20,
+                  height: 20,
+                  marginTop: 2,
+                  accentColor: '#00C6B5',
+                }}
+              />
+              <span style={{ fontSize: 14, color: '#374151', lineHeight: 1.6 }}>
+                I confirm that the information provided is accurate and complete to the best of my knowledge.
               </span>
             </label>
           </div>
         )}
 
-        {/* ── Navigation ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 32 }}>
-          {step > 0
-            ? <button onClick={back} style={{ background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 10, padding: '10px 24px', cursor: 'pointer', fontWeight: 600 }}>← Back</button>
-            : <div />}
+        {/* Navigation */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40 }}>
+          {step > 0 ? (
+            <button
+              onClick={back}
+              style={{
+                background: '#F1F5F9',
+                color: '#374151',
+                border: 'none',
+                borderRadius: 12,
+                padding: '14px 28px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: 15,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back
+            </button>
+          ) : <div />}
 
-          {step < 3
-            ? <button onClick={next} style={{ background: '#0A1628', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 28px', cursor: 'pointer', fontWeight: 700 }}>Next →</button>
-            : (
-              <button
-                onClick={handleSubmit}
-                disabled={!form.confirmed || submitting}
-                style={{
-                  background: form.confirmed && !submitting ? '#00B4A6' : '#E5E7EB',
-                  color:      form.confirmed && !submitting ? '#fff'    : '#9CA3AF',
-                  border: 'none', borderRadius: 10, padding: '10px 28px',
-                  cursor: form.confirmed && !submitting ? 'pointer' : 'not-allowed', fontWeight: 700,
-                }}
-              >
-                {submitting ? 'Submitting…' : 'Submit Complaint'}
-              </button>
-            )}
+          {step < 3 ? (
+            <button
+              onClick={next}
+              style={{
+                background: '#0B1629',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 12,
+                padding: '14px 32px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: 15,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Next
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={!form.confirmed || submitting}
+              style={{
+                background: form.confirmed && !submitting ? 'linear-gradient(135deg, #00C6B5, #009E90)' : '#E2E8F0',
+                color: form.confirmed && !submitting ? '#fff' : '#94A3B8',
+                border: 'none',
+                borderRadius: 12,
+                padding: '14px 32px',
+                cursor: form.confirmed && !submitting ? 'pointer' : 'not-allowed',
+                fontWeight: 700,
+                fontSize: 15,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: form.confirmed && !submitting ? '0 4px 14px rgba(0, 198, 181, 0.3)' : 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {submitting ? (
+                <>
+                  <div style={{
+                    width: 18,
+                    height: 18,
+                    border: '2px solid rgba(255,255,255,0.3)',
+                    borderTopColor: '#fff',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite',
+                  }} />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                  </svg>
+                  Submit Complaint
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>

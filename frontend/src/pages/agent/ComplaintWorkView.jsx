@@ -15,10 +15,10 @@ import { slaCountdown, fmtDateTime } from '../../utils';
 import api from '../../services/api';
 
 const AGENT_NAV = [
-  { path: '/agent/queue',       icon: '📋', label: 'My Queue' },
-  { path: '/agent/all',         icon: '📂', label: 'All Complaints' },
-  { path: '/agent/escalations', icon: '🚨', label: 'Escalations', badge: 2 },
-  { path: '/agent/performance', icon: '📈', label: 'My Performance' },
+  { path: '/agent/queue',       label: 'My Queue' },
+  { path: '/agent/all',         label: 'All Complaints' },
+  { path: '/agent/escalations', label: 'Escalations', badge: 2 },
+  { path: '/agent/performance', label: 'My Performance' },
 ];
 
 export default function ComplaintWorkView() {
@@ -66,7 +66,7 @@ export default function ComplaintWorkView() {
     try {
       await api.complaints.sendResponse(id, { final_response_text: draft, agent_id: user?.id });
       setModal(false);
-      toast.success('Response sent ✓');
+      toast.success('Response sent successfully');
       setTimeout(() => navigate('/agent/queue'), 1200);
     } catch (err) {
       toast.error(err.message || 'Failed to send response. Please try again.');
@@ -76,25 +76,58 @@ export default function ComplaintWorkView() {
   }
 
   function handleOverride(label, value) {
-    toast(`Classification overridden: ${label} → ${value}`, { icon: '✏️' });
+    toast(`Classification overridden: ${label} -> ${value}`, { icon: '✏️' });
   }
 
   if (loading) return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
       <SidebarNav items={AGENT_NAV} />
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner label="Loading complaint…" />
+      <div style={{ marginLeft: 240, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingSpinner label="Loading complaint..." />
       </div>
     </div>
   );
 
   if (error) return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC' }}>
       <SidebarNav items={AGENT_NAV} />
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-        <p style={{ color: '#991B1B', fontSize: 14 }}>{error}</p>
-        <button onClick={() => navigate('/agent/queue')} style={{ background: '#00B4A6', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', cursor: 'pointer', fontWeight: 600 }}>
-          ← Back to Queue
+      <div style={{ marginLeft: 240, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+        <div style={{
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
+          background: '#FEF2F2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <p style={{ color: '#991B1B', fontSize: 15, fontWeight: 500 }}>{error}</p>
+        <button
+          onClick={() => navigate('/agent/queue')}
+          style={{
+            background: '#00C6B5',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 10,
+            padding: '12px 24px',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back to Queue
         </button>
       </div>
     </div>
@@ -102,98 +135,251 @@ export default function ComplaintWorkView() {
 
   const tier = SLA_TIERS[c.sla_tier] || SLA_TIERS.P3;
   const t    = slaCountdown(c.sla_deadline);
+  const isUrgent = c.sla_tier === 'P1' || c.sla_tier === 'P2';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8FAFC', fontFamily: "'Inter', sans-serif" }}>
       <SidebarNav items={AGENT_NAV} />
 
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', flexDirection: 'column', maxHeight: '100vh' }}>
+      <div style={{ marginLeft: 240, flex: 1, display: 'flex', flexDirection: 'column', maxHeight: '100vh' }}>
         {/* Top bar */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #E5E7EB', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', flexShrink: 0 }}>
-          <button onClick={() => navigate('/agent/queue')} style={{ background: 'none', border: 'none', color: '#00B4A6', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>← Queue</button>
-          <span style={{ fontFamily: 'DM Mono, monospace', fontWeight: 700, fontSize: 15, color: '#0A1628' }}>{c.reference_number}</span>
-          <span style={{ background: tier.bg, color: tier.color, borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{c.sla_tier}</span>
-          <span style={{ background: '#00B4A6', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{c.product_category}</span>
+        <div style={{
+          background: '#fff',
+          borderBottom: '1px solid #E2E8F0',
+          padding: '14px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          flexWrap: 'wrap',
+          flexShrink: 0,
+        }}>
+          <button
+            onClick={() => navigate('/agent/queue')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#00C6B5',
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: 0,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Queue
+          </button>
+          
+          <div style={{ width: 1, height: 20, background: '#E2E8F0' }} />
+          
+          <span style={{
+            fontFamily: "'DM Mono', monospace",
+            fontWeight: 700,
+            fontSize: 16,
+            color: '#0B1629',
+          }}>
+            {c.reference_number}
+          </span>
+          
+          <span style={{
+            background: tier.bg,
+            color: tier.color,
+            borderRadius: 8,
+            padding: '4px 12px',
+            fontSize: 12,
+            fontWeight: 700,
+          }}>
+            {c.sla_tier}
+          </span>
+          
+          <span style={{
+            background: 'linear-gradient(135deg, #00C6B5, #009E90)',
+            color: '#fff',
+            borderRadius: 8,
+            padding: '4px 12px',
+            fontSize: 12,
+            fontWeight: 600,
+          }}>
+            {c.product_category}
+          </span>
+          
           {c.escalation_threat_detected && (
-            <span style={{ background: '#DC2626', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>⚠ ESCALATION RISK</span>
+            <span style={{
+              background: '#FEE2E2',
+              color: '#DC2626',
+              borderRadius: 8,
+              padding: '4px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+              </svg>
+              ESCALATION RISK
+            </span>
           )}
-          <span style={{ color: t.color, fontWeight: 700, fontSize: 13, marginLeft: 'auto' }}>⏱ {t.label}</span>
+          
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.color} strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span style={{ color: t.color, fontWeight: 700, fontSize: 14 }}>{t.label}</span>
+          </div>
         </div>
 
         {/* 3-column body */}
-        <div style={{ flex: 1, overflow: 'hidden', display: 'grid', gridTemplateColumns: '30% 40% 30%', gap: 0 }}>
+        <div style={{ flex: 1, overflow: 'hidden', display: 'grid', gridTemplateColumns: '28% 44% 28%', gap: 0 }}>
 
-          {/* ── LEFT: Complaint Info ── */}
-          <div style={{ overflowY: 'auto', padding: '20px 16px', borderRight: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ background: '#fff', borderRadius: 14, padding: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', marginBottom: 12 }}>Complaint Details</h4>
+          {/* LEFT: Complaint Info */}
+          <div style={{ overflowY: 'auto', padding: '20px 18px', borderRight: '1px solid #E2E8F0', background: '#fff' }}>
+            <div style={{
+              background: '#F8FAFC',
+              borderRadius: 14,
+              padding: 18,
+              marginBottom: 16,
+            }}>
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#0B1629', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C6B5" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Complaint Details
+              </h4>
               {[
-                ['Reference',    c.reference_number],
-                ['Customer',     c.customer_name],
-                ['Account',      c.customer_account],
-                ['Mobile',       c.customer_mobile],
-                ['Filed',        fmtDateTime(c.filed_at)],
+                ['Reference', c.reference_number],
+                ['Customer', c.customer_name],
+                ['Account', c.customer_account],
+                ['Mobile', c.customer_mobile],
+                ['Filed', fmtDateTime(c.filed_at)],
                 ['SLA Deadline', fmtDateTime(c.sla_deadline)],
               ].map(([k, v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #F9FAFB', fontSize: 12 }}>
-                  <span style={{ color: '#9CA3AF', fontWeight: 600 }}>{k}</span>
-                  <span style={{ color: '#0A1628', fontFamily: k === 'Reference' ? 'DM Mono, monospace' : 'inherit' }}>{v}</span>
+                <div key={k} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px 0',
+                  borderBottom: '1px solid #E2E8F0',
+                  fontSize: 13,
+                }}>
+                  <span style={{ color: '#64748B', fontWeight: 500 }}>{k}</span>
+                  <span style={{
+                    color: '#0B1629',
+                    fontFamily: k === 'Reference' ? "'DM Mono', monospace" : 'inherit',
+                    fontWeight: k === 'Reference' ? 600 : 400,
+                  }}>
+                    {v}
+                  </span>
                 </div>
               ))}
             </div>
 
-            <div style={{ background: '#F8F9FA', borderRadius: 14, padding: 14 }}>
-              <h4 style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Original Complaint</h4>
-              <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, margin: 0 }}>{c.complaint_text}</p>
+            <div style={{
+              background: '#F8FAFC',
+              borderRadius: 14,
+              padding: 18,
+              marginBottom: 16,
+            }}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0B1629', marginBottom: 10 }}>Original Complaint</h4>
+              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, margin: 0 }}>{c.complaint_text}</p>
             </div>
 
             {c.prev_complaints?.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: 14, padding: 14, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-                <h4 style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Previous Complaints</h4>
+              <div style={{
+                background: '#F8FAFC',
+                borderRadius: 14,
+                padding: 18,
+                marginBottom: 16,
+              }}>
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0B1629', marginBottom: 10 }}>Previous Complaints</h4>
                 {c.prev_complaints.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '5px 0', borderBottom: '1px solid #F3F4F6' }}>
-                    <span style={{ fontFamily: 'DM Mono, monospace', color: '#00B4A6', fontSize: 11 }}>{p.reference}</span>
-                    <span style={{ color: p.status === 'Resolved' ? '#16A34A' : '#D97706', fontWeight: 700, fontSize: 11 }}>{p.status}</span>
+                  <div key={i} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: 12,
+                    padding: '8px 0',
+                    borderBottom: '1px solid #E2E8F0',
+                  }}>
+                    <span style={{ fontFamily: "'DM Mono', monospace", color: '#00C6B5', fontSize: 11 }}>{p.reference}</span>
+                    <span style={{
+                      color: p.status === 'Resolved' ? '#16A34A' : '#F59E0B',
+                      fontWeight: 600,
+                      fontSize: 11,
+                    }}>
+                      {p.status}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
 
-            <InternalNotes initialNotes={[{ at: c.filed_at, author: 'System', text: 'Escalation risk logged. Contacting customer.' }]} />
+            <InternalNotes initialNotes={[{ at: c.filed_at, author: 'System', text: 'Complaint received and classified by AI pipeline.' }]} />
           </div>
 
-          {/* ── CENTRE: AI Draft ── */}
-          <div style={{ overflowY: 'auto', padding: '20px 16px', borderRight: '1px solid #E5E7EB' }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0A1628', margin: '0 0 4px' }}>AI-Generated Draft Response</h3>
-            <p style={{ fontSize: 11, color: '#6B7280', margin: '0 0 4px' }}>
-              Grounded in: {c.ai_draft_policy_sources?.[0]?.doc_name || 'Bank Policy Documents'} · Model: Llama 3.2 3B (Ollama — local)
+          {/* CENTRE: AI Draft */}
+          <div style={{ overflowY: 'auto', padding: '20px 18px', borderRight: '1px solid #E2E8F0' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0B1629', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00C6B5" strokeWidth="2">
+                <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
+                <path d="M20 12a8 8 0 0 0-8-8v8h8z"/>
+              </svg>
+              AI-Generated Draft Response
+            </h3>
+            <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 6px' }}>
+              Grounded in: {c.ai_draft_policy_sources?.[0]?.doc_name || 'Bank Policy Documents'} &middot; Model: Llama 3.2 3B
             </p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 14px', lineHeight: 1.5 }}>
-              The LLM was constrained to only use information from retrieved bank policy documents. It cannot generate claims outside the knowledge base. (Layer 6)
+            <p style={{ fontSize: 11, color: '#94A3B8', margin: '0 0 16px', lineHeight: 1.6 }}>
+              The LLM was constrained to only use information from retrieved bank policy documents. (Layer 6 RAG)
             </p>
 
             {c.compliance_flagged && (
-              <div style={{ background: '#FFFBEB', border: '1px solid #F59E0B', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
-                <p style={{ fontSize: 12, color: '#92400E', fontWeight: 700, margin: '0 0 4px' }}>
-                  ⚠ Compliance check flagged: {c.compliance_flag_reason}
-                </p>
-                <p style={{ fontSize: 11, color: '#92400E', margin: 0 }}>
-                  Checked by DistilBERT compliance classifier (50ms) — scans for unauthorised promises, incorrect timelines, PII, liability admissions. (Layer 7)
-                </p>
+              <div style={{
+                background: '#FFFBEB',
+                border: '1px solid #FCD34D',
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}>
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                  <p style={{ fontSize: 13, color: '#92400E', fontWeight: 600, margin: '0 0 4px' }}>
+                    Compliance check flagged: {c.compliance_flag_reason}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#B45309', margin: 0 }}>
+                    Checked by DistilBERT compliance classifier (Layer 7)
+                  </p>
+                </div>
               </div>
             )}
 
             {c.is_duplicate && (
-              <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
-                <p style={{ fontSize: 12, color: '#1E40AF', fontWeight: 700, margin: '0 0 4px' }}>Possible Duplicate Detected</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '6px 0' }}>
-                  <span style={{ fontSize: 12, color: '#374151' }}>Similarity:</span>
-                  <div style={{ width: 80, height: 6, borderRadius: 3, background: '#DBEAFE', overflow: 'hidden' }}>
+              <div style={{
+                background: '#EFF6FF',
+                border: '1px solid #BFDBFE',
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 16,
+              }}>
+                <p style={{ fontSize: 13, color: '#1E40AF', fontWeight: 600, margin: '0 0 8px' }}>Possible Duplicate Detected</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontSize: 12, color: '#475569' }}>Similarity:</span>
+                  <div style={{ flex: 1, maxWidth: 100, height: 6, borderRadius: 3, background: '#DBEAFE', overflow: 'hidden' }}>
                     <div style={{ width: `${(c.duplicate_similarity_score || 0.87) * 100}%`, height: '100%', background: '#3B82F6', borderRadius: 3 }} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1E40AF' }}>{Math.round((c.duplicate_similarity_score || 0.87) * 100)}% semantic similarity</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#1E40AF' }}>{Math.round((c.duplicate_similarity_score || 0.87) * 100)}%</span>
                 </div>
-                <p style={{ fontSize: 11, color: '#6B7280', margin: '4px 0 0' }}>Detected by FAISS cosine similarity on all-MiniLM-L6-v2 embeddings — not keyword match (Layer 3).</p>
+                <p style={{ fontSize: 11, color: '#64748B', margin: 0 }}>FAISS cosine similarity on all-MiniLM-L6-v2 embeddings (Layer 3)</p>
               </div>
             )}
 
@@ -207,27 +393,95 @@ export default function ComplaintWorkView() {
             <ClassificationPanel complaint={c} onOverride={handleOverride} />
           </div>
 
-          {/* ── RIGHT: Context Panel ── */}
-          <div style={{ overflowY: 'auto', padding: '20px 16px' }}>
+          {/* RIGHT: Context Panel */}
+          <div style={{ overflowY: 'auto', padding: '20px 18px', background: '#fff' }}>
             <ContextPanel complaint={c} onUseResolution={text => setDraft(prev => text + '\n\n' + prev)} />
           </div>
         </div>
 
-        {/* ── Fixed bottom action bar ── */}
+        {/* Fixed bottom action bar */}
         <div style={{
-          background: '#fff', borderTop: '1.5px solid #E5E7EB',
-          padding: '14px 24px', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap',
+          background: '#fff',
+          borderTop: '1px solid #E2E8F0',
+          padding: '16px 24px',
+          display: 'flex',
+          gap: 12,
+          flexShrink: 0,
+          flexWrap: 'wrap',
         }}>
-          <button onClick={() => setModal(true)} style={{ background: '#00B4A6', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 20px', cursor: 'pointer', fontWeight: 700 }}>
-            Approve and Send Response
+          <button
+            onClick={() => setModal(true)}
+            style={{
+              background: '#00C6B5',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              padding: '12px 24px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+            Approve and Send
           </button>
-          <button onClick={() => toast('Escalated to manager', { icon: '📤' })} style={{ background: 'none', border: '1.5px solid #D97706', color: '#D97706', borderRadius: 10, padding: '10px 16px', cursor: 'pointer', fontWeight: 600 }}>
+          
+          <button
+            onClick={() => toast('Escalated to manager', { icon: '📤' })}
+            style={{
+              background: '#fff',
+              border: '2px solid #F59E0B',
+              color: '#D97706',
+              borderRadius: 10,
+              padding: '10px 18px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
             Escalate to Manager
           </button>
-          <button onClick={() => toast('Marked as duplicate', { icon: '🔁' })} style={{ background: 'none', border: '1.5px solid #D1D5DB', color: '#6B7280', borderRadius: 10, padding: '10px 16px', cursor: 'pointer', fontWeight: 600 }}>
+          
+          <button
+            onClick={() => toast('Marked as duplicate', { icon: '🔁' })}
+            style={{
+              background: '#fff',
+              border: '1px solid #E2E8F0',
+              color: '#64748B',
+              borderRadius: 10,
+              padding: '10px 18px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
             Close as Duplicate
           </button>
-          <button onClick={() => toast('Info request sent to customer', { icon: '💬' })} style={{ background: 'none', border: '1.5px solid #3B82F6', color: '#3B82F6', borderRadius: 10, padding: '10px 16px', cursor: 'pointer', fontWeight: 600 }}>
+          
+          <button
+            onClick={() => toast('Info request sent to customer', { icon: '💬' })}
+            style={{
+              background: '#fff',
+              border: '2px solid #3B82F6',
+              color: '#2563EB',
+              borderRadius: 10,
+              padding: '10px 18px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
             Request More Info
           </button>
         </div>
