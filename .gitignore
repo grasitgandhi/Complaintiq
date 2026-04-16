@@ -1,0 +1,13 @@
+
+frontend/.env
+frontend/.env.production
+backend/.env.example
+backend/.env
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+
+# Frontend dependencies
+frontend/node_modules/
