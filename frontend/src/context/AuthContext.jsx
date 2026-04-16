@@ -5,9 +5,9 @@ import api from '../services/api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(null);
-  const [role,    setRole]    = useState(null);
-  const [token,   setToken]   = useState(null);
+  const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Rehydrate from localStorage on mount
@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
       try {
         const { user, role, token } = JSON.parse(stored);
         setUser(user); setRole(role); setToken(token);
-      } catch (_) {}
+      } catch (_) { }
     }
     setLoading(false);
   }, []);
@@ -29,7 +29,11 @@ export function AuthProvider({ children }) {
       persist(userData, role, token);
       return { success: true, role };
     } catch (err) {
-      return { success: false, error: err.message || 'Login failed. Please try again.' };
+      const isNetworkError = !err.response;
+      const message = isNetworkError
+        ? 'Cannot reach backend API at http://localhost:8000. Start the backend server and try again.'
+        : (err.message || 'Login failed. Please try again.');
+      return { success: false, error: message };
     }
   }
 
