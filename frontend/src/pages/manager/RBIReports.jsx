@@ -5,26 +5,26 @@ import api from '../../services/api';
 
 const MANAGER_NAV = [
   { path: '/manager/overview', icon: '📊', label: 'Overview' },
-  { path: '/manager/sla',      icon: '⏱',  label: 'SLA Monitor' },
-  { path: '/manager/reports',  icon: '📄',  label: 'RBI Reports' },
-  { path: '/manager/agents',   icon: '👥',  label: 'Agent Performance' },
+  { path: '/manager/sla', icon: '⏱', label: 'SLA Monitor' },
+  { path: '/manager/reports', icon: '📄', label: 'RBI Reports' },
+  { path: '/manager/agents', icon: '👥', label: 'Agent Performance' },
 ];
 
 const HISTORY = [
   { month: 'February 2026', generated: '01 Mar 2026', submitted: '03 Mar 2026', status: 'Submitted' },
-  { month: 'January 2026',  generated: '01 Feb 2026', submitted: '02 Feb 2026', status: 'Submitted' },
+  { month: 'January 2026', generated: '01 Feb 2026', submitted: '02 Feb 2026', status: 'Submitted' },
   { month: 'December 2025', generated: '01 Jan 2026', submitted: '04 Jan 2026', status: 'Submitted' },
 ];
 
 export default function RBIReports() {
-  const [month, setMonth]       = useState('March 2026');
+  const [month, setMonth] = useState('March 2026');
   const [bankName, setBankName] = useState('State Bank of India');
-  const [reportType, setType]   = useState('Monthly Summary');
+  const [reportType, setType] = useState('Monthly Summary');
 
-  const [reportData, setReportData]   = useState(null);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState(null);
-  const [submitted, setSubmitted]     = useState(false);
+  const [reportData, setReportData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   async function doGenerate() {
     setLoading(true);
@@ -44,12 +44,25 @@ export default function RBIReports() {
   // Safely derive rows and totals from live data
   const productRows = reportData?.by_category || [];
   const channelRows = reportData?.by_channel || [];
+  const topGroundRows = Array.isArray(reportData?.top_grounds)
+    ? reportData.top_grounds
+      .map((row, idx) => {
+        if (Array.isArray(row)) {
+          return { ground: row[0] ?? `Ground ${idx + 1}`, count: row[1] ?? 0 };
+        }
+        return {
+          ground: row?.ground ?? row?.name ?? `Ground ${idx + 1}`,
+          count: row?.count ?? row?.value ?? 0,
+        };
+      })
+      .filter((r) => r.ground)
+    : [];
   const totals = productRows.reduce(
     (a, r) => ({
       recv: a.recv + (r.received || 0),
       prev: a.prev + (r.pending_prev || 0),
       disp: a.disp + (r.disposed || 0),
-      end:  a.end  + (r.pending_end || 0),
+      end: a.end + (r.pending_end || 0),
     }),
     { recv: 0, prev: 0, disp: 0, end: 0 }
   );
@@ -207,7 +220,7 @@ export default function RBIReports() {
             </div>
 
             {/* Table 3 — Top Complaint Grounds (static from report data if available) */}
-            {reportData?.top_grounds && (
+            {topGroundRows.length > 0 && (
               <>
                 <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', marginBottom: 10 }}>
                   Table 3 — Top 10 Grounds of Complaints
@@ -222,10 +235,10 @@ export default function RBIReports() {
                       </tr>
                     </thead>
                     <tbody>
-                      {reportData.top_grounds.map(([g, c], i) => (
-                        <tr key={g} style={{ background: i % 2 === 0 ? '#F8F9FA' : '#fff', borderBottom: '1px solid #F3F4F6' }}>
-                          <td style={{ padding: '7px 12px' }}>{g}</td>
-                          <td style={{ padding: '7px 12px', textAlign: 'center', fontWeight: 700 }}>{c}</td>
+                      {topGroundRows.map((row, i) => (
+                        <tr key={`${row.ground}-${i}`} style={{ background: i % 2 === 0 ? '#F8F9FA' : '#fff', borderBottom: '1px solid #F3F4F6' }}>
+                          <td style={{ padding: '7px 12px' }}>{row.ground}</td>
+                          <td style={{ padding: '7px 12px', textAlign: 'center', fontWeight: 700 }}>{row.count}</td>
                         </tr>
                       ))}
                     </tbody>

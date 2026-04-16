@@ -11,3 +11,4 @@ __pycache__/
 
 # Frontend dependencies
 frontend/node_modules/
+frontend/build/
