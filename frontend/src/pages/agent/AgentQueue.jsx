@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import SidebarNav from '../../components/agent/SidebarNav';
 import ComplaintCard from '../../components/agent/ComplaintCard';
+import ComplaintQueue from '../../components/agent/ComplaintQueue';
 import LoadingSkeleton from '../../components/agent/LoadingSkeleton';
 import api from '../../services/api';
 
@@ -47,6 +49,7 @@ function computeStats(complaints) {
 
 export default function AgentQueue() {
   const { token }  = useAuth();
+  const { isDark } = useTheme();
   const navigate   = useNavigate();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -91,47 +94,12 @@ export default function AgentQueue() {
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="flex min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <SidebarNav items={AGENT_NAV} />
 
-      <div style={{ marginLeft: 220, flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-        {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
-          {stats.map(s => (
-            <div key={s.label} style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-              <div style={{ fontSize: 30, fontWeight: 800, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 600, marginTop: 2 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search reference, customer name…"
-            style={{ flex: 1, minWidth: 200, padding: '9px 14px', borderRadius: 10, border: '1.5px solid #D1D5DB', fontSize: 13, outline: 'none' }} />
-          <div style={{ display: 'flex', gap: 4, background: '#fff', borderRadius: 10, padding: 4, border: '1px solid #E5E7EB' }}>
-            {['All', 'P1', 'P2', 'P3', 'P4'].map(t => (
-              <button key={t} onClick={() => setTierFilter(t)} style={{
-                padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: tierFilter === t ? '#0A1628' : 'transparent',
-                color:      tierFilter === t ? '#fff'    : '#374151',
-                fontSize: 13, fontWeight: 700,
-              }}>{t}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* List */}
-        {loading
-          ? <LoadingSkeleton count={4} />
-          : <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {filtered.length === 0
-                ? <div style={{ textAlign: 'center', padding: '60px 0', color: '#9CA3AF' }}>No complaints match your filter.</div>
-                : filtered.map(c => <ComplaintCard key={c.id} c={c} />)
-              }
-            </div>
-        }
+      <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
+        {/* Use new ComplaintQueue Table Component */}
+        <ComplaintQueue complaints={complaints} loading={loading} />
       </div>
     </div>
   );

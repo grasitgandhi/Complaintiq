@@ -93,47 +93,46 @@ export default function NewComplaint() {
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '32px 16px' }}>
+    <div className="max-w-2xl mx-auto px-4 py-8 bg-slate-50 dark:bg-[#010409] min-h-screen">
       <StepProgressBar steps={STEPS} current={step} />
 
-      <div style={{ background: '#fff', borderRadius: 16, padding: 32, boxShadow: '0 1px 8px rgba(0,0,0,0.07)' }}>
+      <div className="bg-white dark:bg-[#161B22] rounded-2xl p-8 shadow-xl dark:shadow-2xl border border-slate-100 dark:border-slate-800">
 
         {/* ── STEP 0: Your Details ── */}
         {step === 0 && (
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 24 }}>
-              Your Details
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Your Details</h2>
 
             {[
               { key: 'account', label: 'Account Number', type: 'text', placeholder: 'Your bank account number', max: 20 },
               { key: 'mobile',  label: 'Mobile Number',  type: 'tel',  placeholder: '10-digit number starting with 6–9' },
               { key: 'email',   label: 'Email Address (Optional)', type: 'email', placeholder: 'your@email.com' },
             ].map(f => (
-              <div key={f.key} style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+              <div key={f.key} className="mb-5">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                   {f.label}
                 </label>
                 <input
-                  type={f.type} value={form[f.key]} maxLength={f.max}
+                  type={f.type}
+                  value={form[f.key]}
+                  maxLength={f.max}
                   onChange={e => set(f.key, e.target.value)}
                   placeholder={f.placeholder}
-                  style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 14,
-                    border: `1.5px solid ${errors[f.key] ? '#DC2626' : '#D1D5DB'}`,
-                    outline: 'none', boxSizing: 'border-box',
-                  }}
+                  className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border ${ errors[f.key] ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
                 />
-                {errors[f.key] && <p style={{ color: '#DC2626', fontSize: 12, marginTop: 4 }}>{errors[f.key]}</p>}
+                {errors[f.key] && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors[f.key]}</p>}
               </div>
             ))}
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                 Preferred Language
               </label>
-              <select value={form.lang} onChange={e => set('lang', e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #D1D5DB', fontSize: 14 }}>
+              <select
+                value={form.lang}
+                onChange={e => set('lang', e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200"
+              >
                 {LANGUAGES.map(l => <option key={l}>{l}</option>)}
               </select>
             </div>
@@ -143,85 +142,92 @@ export default function NewComplaint() {
         {/* ── STEP 1: Complaint Details ── */}
         {step === 1 && (
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 24 }}>
-              Complaint Details
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Complaint Details</h2>
 
             {/* Product category */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                 Product Category *
               </label>
-              <select value={form.product} onChange={e => set('product', e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1.5px solid ${errors.product ? '#DC2626' : '#D1D5DB'}`, fontSize: 14 }}>
+              <select
+                value={form.product}
+                onChange={e => set('product', e.target.value)}
+                className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border ${ errors.product ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
+              >
                 <option value="">Select a product</option>
                 {PRODUCT_CATEGORIES.map(p => <option key={p}>{p}</option>)}
               </select>
-              {errors.product && <p style={{ color: '#DC2626', fontSize: 12, marginTop: 4 }}>{errors.product}</p>}
+              {errors.product && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.product}</p>}
               {form.product === 'NACH Mandate' && (
-                <p style={{ fontSize: 12, color: '#6B7280', background: '#F8F9FA', borderRadius: 8, padding: '6px 10px', marginTop: 6 }}>
+                <p className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg p-2 mt-2">
                   ℹ National Automated Clearing House — handles EMI and recurring payments
                 </p>
               )}
               {form.product === 'PMJDY Account' && (
-                <p style={{ fontSize: 12, color: '#6B7280', background: '#F8F9FA', borderRadius: 8, padding: '6px 10px', marginTop: 6 }}>
+                <p className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg p-2 mt-2">
                   ℹ Pradhan Mantri Jan-Dhan Yojana — government basic savings accounts
                 </p>
               )}
             </div>
 
             {/* Description with live char counter */}
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                 Complaint Description *
               </label>
               <textarea
                 value={form.desc}
                 onChange={e => set('desc', e.target.value)}
                 placeholder="Describe your complaint in detail (minimum 30 characters)…"
-                maxLength={500} rows={5}
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 14,
-                  border: `1.5px solid ${errors.desc ? '#DC2626' : '#D1D5DB'}`,
-                  resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6,
-                }}
+                maxLength={500}
+                rows={5}
+                className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border ${ errors.desc ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                {errors.desc
-                  ? <p style={{ color: '#DC2626', fontSize: 12, margin: 0 }}>{errors.desc}</p>
-                  : <span />}
-                <span style={{ fontSize: 12, color: form.desc.length >= 450 ? '#D97706' : '#9CA3AF' }}>
+              <div className="flex justify-between mt-1">
+                {errors.desc ? (
+                  <p className="text-red-600 dark:text-red-400 text-xs">{errors.desc}</p>
+                ) : (
+                  <span />
+                )}
+                <span className={`text-xs ${ form.desc.length >= 450 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-600'}`}>
                   {form.desc.length} / 500
                 </span>
               </div>
 
               {escalation && (
-                <div style={{ background: '#FFFBEB', border: '1px solid #F59E0B', borderRadius: 10, padding: '12px 16px', marginTop: 10 }}>
-                  <p style={{ fontSize: 13, color: '#92400E', fontWeight: 600, margin: 0 }}>
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-3">
+                  <p className="text-sm text-amber-900 dark:text-amber-100 font-semibold m-0">
                     ⚠ Your complaint mentions a regulatory body. We will treat this as P1 Priority and assign it to a senior agent within the next hour.
                   </p>
                 </div>
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                   Date of Incident *
                 </label>
-                <input type="date" value={form.date} max={today}
+                <input
+                  type="date"
+                  value={form.date}
+                  max={today}
                   onChange={e => set('date', e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1.5px solid ${errors.date ? '#DC2626' : '#D1D5DB'}`, fontSize: 14, boxSizing: 'border-box' }} />
-                {errors.date && <p style={{ color: '#DC2626', fontSize: 12, marginTop: 4 }}>{errors.date}</p>}
+                  className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border ${ errors.date ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
+                />
+                {errors.date && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.date}</p>}
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                   Transaction Reference (Optional)
                 </label>
-                <input type="text" value={form.ref}
+                <input
+                  type="text"
+                  value={form.ref}
                   onChange={e => set('ref', e.target.value)}
                   placeholder="e.g. UPI/2026/03/15/4821"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1.5px solid #D1D5DB', fontSize: 14, boxSizing: 'border-box' }} />
+                  className="w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200"
+                />
               </div>
             </div>
           </div>
@@ -230,10 +236,8 @@ export default function NewComplaint() {
         {/* ── STEP 2: Documents ── */}
         {step === 2 && (
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 8 }}>
-              Supporting Documents
-            </h2>
-            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 24 }}>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Supporting Documents</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
               Upload any screenshots, statements, or transaction proofs that support your complaint.
             </p>
             <FileUploadArea files={form.files} setFiles={v => set('files', v)} />
@@ -243,9 +247,7 @@ export default function NewComplaint() {
         {/* ── STEP 3: Review ── */}
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 24 }}>
-              Review & Submit
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Review & Submit</h2>
             {[
               {
                 heading: 'Your Details',
@@ -272,24 +274,29 @@ export default function NewComplaint() {
                   : [['Files', 'None attached']],
               },
             ].map(sec => (
-              <div key={sec.heading} style={{ marginBottom: 20 }}>
-                <div style={{ background: '#0A1628', color: '#fff', padding: '8px 14px', borderRadius: '10px 10px 0 0', fontSize: 13, fontWeight: 700 }}>
+              <div key={sec.heading} className="mb-5">
+                <div className="bg-slate-900 dark:bg-slate-900 text-white px-4 py-2 rounded-t-lg text-sm font-semibold">
                   {sec.heading}
                 </div>
-                <div style={{ border: '1px solid #E5E7EB', borderTop: 'none', borderRadius: '0 0 10px 10px' }}>
+                <div className="border border-t-0 border-slate-200 dark:border-slate-700 rounded-b-lg dark:bg-[#0D1117]">
                   {sec.rows.map(([k, v]) => (
-                    <div key={k} style={{ display: 'grid', gridTemplateColumns: '160px 1fr', padding: '10px 14px', borderBottom: '1px solid #F3F4F6' }}>
-                      <span style={{ fontSize: 12, color: '#6B7280', fontWeight: 600 }}>{k}</span>
-                      <span style={{ fontSize: 13, color: '#0A1628', wordBreak: 'break-word' }}>{v}</span>
+                    <div key={k} className="grid grid-cols-48 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{k}</span>
+                      <span className="text-sm text-slate-900 dark:text-slate-100 break-words">{v}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ))}
 
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginTop: 20 }}>
-              <input type="checkbox" checked={form.confirmed} onChange={e => set('confirmed', e.target.checked)} style={{ marginTop: 2 }} />
-              <span style={{ fontSize: 13, color: '#374151' }}>
+            <label className="flex items-start gap-3 cursor-pointer mt-6">
+              <input
+                type="checkbox"
+                checked={form.confirmed}
+                onChange={e => set('confirmed', e.target.checked)}
+                className="mt-1"
+              />
+              <span className="text-sm text-slate-700 dark:text-slate-300">
                 I confirm the information provided is accurate and complete
               </span>
             </label>
@@ -297,27 +304,36 @@ export default function NewComplaint() {
         )}
 
         {/* ── Navigation ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 32 }}>
-          {step > 0
-            ? <button onClick={back} style={{ background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 10, padding: '10px 24px', cursor: 'pointer', fontWeight: 600 }}>← Back</button>
-            : <div />}
+        <div className="flex justify-between mt-8">
+          {step > 0 ? (
+            <button
+              onClick={back}
+              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors duration-200"
+            >
+              ← Back
+            </button>
+          ) : (
+            <div />
+          )}
 
-          {step < 3
-            ? <button onClick={next} style={{ background: '#0A1628', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 28px', cursor: 'pointer', fontWeight: 700 }}>Next →</button>
-            : (
-              <button
-                onClick={handleSubmit}
-                disabled={!form.confirmed || submitting}
-                style={{
-                  background: form.confirmed && !submitting ? '#00B4A6' : '#E5E7EB',
-                  color:      form.confirmed && !submitting ? '#fff'    : '#9CA3AF',
-                  border: 'none', borderRadius: 10, padding: '10px 28px',
-                  cursor: form.confirmed && !submitting ? 'pointer' : 'not-allowed', fontWeight: 700,
-                }}
-              >
-                {submitting ? 'Submitting…' : 'Submit Complaint'}
-              </button>
-            )}
+          {step < 3 ? (
+            <button
+              onClick={next}
+              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-slate-900 dark:bg-slate-900 text-white hover:bg-slate-800 dark:hover:bg-slate-800 transition-colors duration-200"
+            >
+              Next →
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={!form.confirmed || submitting}
+              className={`px-8 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-200 ${ form.confirmed && !submitting
+                ? 'bg-teal-600 text-white hover:bg-teal-700'
+                : 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed'}`}
+            >
+              {submitting ? 'Submitting…' : 'Submit Complaint'}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -44,19 +44,19 @@ export default function ManagerOverview() {
   }, [token]);
 
   if (loading) return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="ml-[220px] flex-1 flex items-center justify-center">
         <LoadingSpinner label="Loading analytics…" />
       </div>
     </div>
   );
 
   if (error) return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-        <p style={{ color: '#991B1B', fontSize: 14 }}>{error}</p>
+      <div className="ml-[220px] flex-1 flex items-center justify-center flex-col gap-3">
+        <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
       </div>
     </div>
   );
@@ -80,14 +80,14 @@ export default function ManagerOverview() {
     .map(p => ({ type: p.product, count: p.count }));
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
 
-      <div style={{ marginLeft: 220, flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 20 }}>Overview Dashboard</h2>
+      <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">Overview Dashboard</h2>
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 24 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3.5 mb-6">
           <StatCard label="Total Open" value={summary.open} color="#00B4A6" sub="Complaints" />
           <StatCard label="SLA Breach Rate" value={`${summary.breach_rate}%`} color={summary.breach_rate > 5 ? '#DC2626' : '#16A34A'}
             sub="This month" tooltip="RBI IOS threshold — regulatory penalties above 5%" />
@@ -99,33 +99,33 @@ export default function ManagerOverview() {
         </div>
 
         {/* Charts row 1 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', marginBottom: 16 }}>Daily Complaint Volume (Last 30 Days)</h4>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+          <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Daily Complaint Volume (Last 30 Days)</h4>
             <VolumeLineChart data={volume} />
           </div>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', marginBottom: 16 }}>Complaints by Product Category</h4>
+          <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Complaints by Product Category</h4>
             <ProductDonutChart data={productData} />
           </div>
         </div>
 
         {/* Charts row 2 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', marginBottom: 16 }}>Sentiment by Product Category</h4>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+          <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Sentiment by Product Category</h4>
             <SentimentBarChart data={sentimentData} />
           </div>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', marginBottom: 16 }}>Top 5 Complaint Types by Volume</h4>
+          <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Top 5 Complaint Types by Volume</h4>
             <TopTypesChart data={top_types} />
           </div>
         </div>
 
         {/* SLA performance table */}
-        <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: '#0A1628', margin: 0 }}>SLA Performance by Tier</h4>
+        <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm dark:shadow-md overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white m-0">SLA Performance by Tier</h4>
           </div>
           <SLATable />
         </div>

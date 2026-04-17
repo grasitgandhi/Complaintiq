@@ -50,21 +50,21 @@ export default function AgentPerformance() {
   const [expanded, setExpanded] = useState(null);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
 
-      <div style={{ marginLeft: 220, flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 20 }}>Agent Performance — March 2026</h2>
+      <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">Agent Performance — March 2026</h2>
 
-        <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm dark:shadow-md overflow-hidden">
+          <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr style={{ background: '#F8F9FA' }}>
+              <tr className="bg-slate-50 dark:bg-slate-900">
                 {[
                   'Agent', 'Assigned', 'Resolved', 'Avg Handle Time',
                   'CSAT', 'SLA Compliance', 'AI Draft Usage',
                 ].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', color: '#6B7280', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -74,25 +74,27 @@ export default function AgentPerformance() {
                   <tr
                     key={a.id}
                     onClick={() => setExpanded(expanded === a.id ? null : a.id)}
-                    style={{ borderBottom: '1px solid #F9FAFB', cursor: 'pointer', background: expanded === a.id ? '#F0FDFC' : '#fff' }}
+                    className={`border-b border-slate-100 dark:border-slate-800 cursor-pointer ${
+                      expanded === a.id ? 'bg-teal-50 dark:bg-teal-900/10' : 'bg-white dark:bg-transparent'
+                    }`}
                   >
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: 700, color: '#0A1628' }}>{a.name}</div>
-                      <div style={{ fontSize: 11, color: '#9CA3AF' }}>{a.team}</div>
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-slate-900 dark:text-slate-100">{a.name}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{a.team}</div>
                     </td>
-                    <td style={{ padding: '14px 16px' }}>{a.assigned}</td>
-                    <td style={{ padding: '14px 16px', color: '#16A34A', fontWeight: 700 }}>{a.resolved}</td>
-                    <td style={{ padding: '14px 16px' }}>{a.avg_handle}</td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{ fontWeight: 700 }}>{a.csat}</span>
-                      <span style={{ color: '#F59E0B', marginLeft: 4 }}>★</span>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{a.assigned}</td>
+                    <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 font-bold">{a.resolved}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{a.avg_handle}</td>
+                    <td className="px-4 py-3">
+                      <span className="font-bold text-slate-900 dark:text-slate-100">{a.csat}</span>
+                      <span className="text-amber-500 ml-1">★</span>
                     </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{ color: a.sla_pct >= 95 ? '#16A34A' : '#D97706', fontWeight: 700 }}>
+                    <td className="px-4 py-3">
+                      <span className={`font-bold ${a.sla_pct >= 95 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                         {a.sla_pct}%
                       </span>
                     </td>
-                    <td style={{ padding: '14px 16px' }}>
+                    <td className="px-4 py-3">
                       <div
                         title="% of resolved complaints where agent approved AI draft without manual edits. NatWest Cora+ benchmark: 49% no-edit rate across 11.2M conversations (NatWest H1 2025)."
                         style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'help' }}
@@ -108,22 +110,22 @@ export default function AgentPerformance() {
                   {/* Expanded row */}
                   {expanded === a.id && (
                     <tr key={`exp-${a.id}`}>
-                      <td colSpan={7} style={{ background: '#F8FFFE', padding: '20px 24px', borderBottom: '2px solid #00B4A6' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+                      <td colSpan={7} className="bg-teal-50 dark:bg-teal-900/10 px-6 py-5 border-b-2 border-teal-500">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                           <div>
-                            <h5 style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, marginBottom: 12 }}>
+                            <h5 className="text-xs text-slate-600 dark:text-slate-400 font-bold mb-3">
                               Complaints by Product
                             </h5>
                             {a.by_product.map(p => (
-                              <div key={p.product} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                                <span style={{ fontSize: 12, color: '#374151', width: 130, flexShrink: 0 }}>{p.product}</span>
+                              <div key={p.product} className="flex items-center gap-2.5 mb-2">
+                                <span className="text-xs text-slate-700 dark:text-slate-300 w-[130px] flex-shrink-0">{p.product}</span>
                                 <MiniBar value={p.count} max={20} color="#00B4A6" />
                               </div>
                             ))}
                           </div>
 
                           <div>
-                            <h5 style={{ fontSize: 12, color: '#6B7280', fontWeight: 700, marginBottom: 12 }}>
+                            <h5 className="text-xs text-slate-600 dark:text-slate-400 font-bold mb-3">
                               Customer Sentiment Breakdown
                             </h5>
                             {[
@@ -131,8 +133,8 @@ export default function AgentPerformance() {
                               { label: 'Neutral',    value: a.sentiment.neutral,    color: '#9CA3AF' },
                               { label: 'Satisfied',  value: a.sentiment.satisfied,  color: '#16A34A' },
                             ].map(s => (
-                              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                                <span style={{ fontSize: 12, color: '#374151', width: 80, flexShrink: 0 }}>{s.label}</span>
+                              <div key={s.label} className="flex items-center gap-2.5 mb-2">
+                                <span className="text-xs text-slate-700 dark:text-slate-300 w-20 flex-shrink-0">{s.label}</span>
                                 <MiniBar value={s.value} max={20} color={s.color} />
                               </div>
                             ))}

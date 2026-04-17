@@ -42,33 +42,35 @@ export default function TrackComplaint() {
   if (loading) return <LoadingSpinner label="Loading your complaints…" />;
 
   return (
-    <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 16px' }}>
+    <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#0A1628', marginBottom: 4 }}>
-          Track My Complaints
-        </h2>
-        <p style={{ fontSize: 13, color: '#6B7280' }}>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-1">Track My Complaints</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Complaints filed under your account · {complaints.length} total
         </p>
       </div>
 
       {/* Error state */}
       {error && (
-        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: '14px 18px', color: '#991B1B', fontSize: 13, marginBottom: 20 }}>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-800 dark:text-red-200 text-sm mb-5">
           {error}
         </div>
       )}
 
       {/* Search */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+      <div className="flex gap-3 mb-6">
         <input
-          value={search} onChange={e => setSearch(e.target.value)}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
           placeholder="Filter by reference number (e.g. CIQ-2026-000001)"
-          style={{ flex: 1, padding: '12px 16px', borderRadius: 12, border: '1.5px solid #D1D5DB', fontSize: 14, outline: 'none' }}
+          className="flex-1 px-4 py-2.5 rounded-lg text-sm bg-white dark:bg-[#161B22] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200"
         />
         {search && (
-          <button onClick={() => setSearch('')} style={{ background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 12, padding: '12px 20px', cursor: 'pointer', fontWeight: 700 }}>
+          <button
+            onClick={() => setSearch('')}
+            className="px-4 py-2.5 rounded-lg text-sm font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200"
+          >
             Clear
           </button>
         )}
@@ -76,49 +78,54 @@ export default function TrackComplaint() {
 
       {/* Empty state */}
       {shown.length === 0 && !search && !error && (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#9CA3AF' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
-          <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>No complaints filed yet</p>
-          <p style={{ fontSize: 13, marginBottom: 20 }}>Use the button below to file your first complaint.</p>
-          <button onClick={() => navigate('/customer/new')} style={{ background: '#00B4A6', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', cursor: 'pointer', fontWeight: 700 }}>
+        <div className="text-center py-16 text-slate-500 dark:text-slate-400">
+          <div className="text-6xl mb-4">📭</div>
+          <p className="text-lg font-semibold mb-2">No complaints filed yet</p>
+          <p className="text-sm mb-6">Use the button below to file your first complaint.</p>
+          <button
+            onClick={() => navigate('/customer/new')}
+            className="px-6 py-3 rounded-lg text-sm font-semibold bg-teal-600 text-white hover:bg-teal-700 transition-colors duration-200"
+          >
             File a Complaint
           </button>
         </div>
       )}
 
       {search && shown.length === 0 && (
-        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: '14px 18px', color: '#991B1B', fontSize: 13 }}>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-800 dark:text-red-200 text-sm">
           No complaint matching <strong>{search}</strong> found in your account.
         </div>
       )}
 
       {/* Complaint cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="space-y-4">
         {shown.map(c => {
           const tier = SLA_TIERS[c.sla_tier] || SLA_TIERS.P3;
           const risk = breachRiskLabel(c.sla_breach_probability || 0);
           return (
-            <div key={c.id} style={{
-              background: '#fff', borderRadius: 16, padding: 20,
-              boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
-              borderLeft: `4px solid ${tier.color}`,
-            }}>
+            <div
+              key={c.id}
+              className="bg-white dark:bg-[#161B22] rounded-lg p-5 shadow-md dark:shadow-lg border border-slate-100 dark:border-slate-800 hover:shadow-lg dark:hover:shadow-xl transition-shadow duration-200"
+              style={{ borderLeftWidth: '4px', borderLeftColor: tier.color }}
+            >
               {/* Top row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+              <div className="flex justify-between items-start mb-4 flex-wrap gap-3">
                 <div>
-                  <span style={{ fontFamily: 'DM Mono, monospace', fontWeight: 700, color: '#0A1628', fontSize: 15 }}>{c.reference_number}</span>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-                    <span style={{ background: '#00B4A6', color: '#fff', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>{c.product_category}</span>
-                    <span title="P1=24hr · P2=48hr · P3=5 business days · P4=10 business days (RBI IOS)" style={{ background: tier.bg, color: tier.color, borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700, cursor: 'help' }}>{c.sla_tier}</span>
-                    <span style={{ background: '#F3F4F6', color: '#374151', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>{STATUS_LABELS[c.status]}</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white text-4">{c.reference_number}</span>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    <span className="bg-teal-600 text-white rounded-full px-3 py-1 text-xs font-semibold">{c.product_category}</span>
+                    <span title="P1=24hr · P2=48hr · P3=5 business days · P4=10 business days (RBI IOS)" style={{ background: tier.bg, color: tier.color }} className="rounded-full px-3 py-1 text-xs font-semibold cursor-help">
+                      {c.sla_tier}
+                    </span>
+                    <span className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full px-3 py-1 text-xs font-semibold">{STATUS_LABELS[c.status]}</span>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 12, color: '#9CA3AF' }}>Filed {fmtDate(c.filed_at)}</div>
+                <div className="text-right">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Filed {fmtDate(c.filed_at)}</div>
                   <SLACountdown deadline={c.sla_deadline} />
                   {(c.sla_tier === 'P1' || c.sla_tier === 'P2') && (
-                    <div style={{ marginTop: 4 }}>
-                      <span style={{ background: risk.bg, color: risk.color, borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                    <div className="mt-1">
+                      <span style={{ background: risk.bg, color: risk.color }} className="rounded-full px-3 py-1 text-xs font-semibold">
                         Risk: {risk.label}
                       </span>
                     </div>
@@ -130,13 +137,13 @@ export default function TrackComplaint() {
               <StatusStepper status={c.status} />
 
               {/* Snippet + button */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, gap: 12 }}>
-                <p style={{ fontSize: 13, color: '#6B7280', margin: 0, flex: 1 }}>
+              <div className="flex justify-between items-center mt-4 gap-3">
+                <p className="text-sm text-slate-600 dark:text-slate-400 m-0 flex-1">
                   {c.complaint_text?.slice(0, 100)}…
                 </p>
                 <button
                   onClick={() => navigate(`/customer/complaint/${c.id}`)}
-                  style={{ background: '#0A1628', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-slate-900 dark:bg-slate-700 text-white hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors duration-200 whitespace-nowrap"
                 >
                   View Details →
                 </button>

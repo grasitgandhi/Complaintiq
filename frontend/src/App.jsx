@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
+import Layout from './components/shared/Layout';
 
 // Public
 import Login from './pages/Login';
@@ -27,7 +29,8 @@ import AgentPerformance from './pages/manager/AgentPerformance';
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -48,34 +51,34 @@ export default function App() {
           } />
           <Route path="/customer/new" element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <div style={{ minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+              <Layout>
                 <CustomerTopbar />
                 <NewComplaint />
-              </div>
+              </Layout>
             </ProtectedRoute>
           } />
           <Route path="/customer/track" element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <div style={{ minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+              <Layout>
                 <CustomerTopbar />
                 <TrackComplaint />
-              </div>
+              </Layout>
             </ProtectedRoute>
           } />
           <Route path="/customer/complaint/:id" element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <div style={{ minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+              <Layout>
                 <CustomerTopbar />
                 <ComplaintDetail />
-              </div>
+              </Layout>
             </ProtectedRoute>
           } />
           <Route path="/customer/success" element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <div style={{ minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+              <Layout>
                 <CustomerTopbar />
                 <SuccessScreen />
-              </div>
+              </Layout>
             </ProtectedRoute>
           } />
 
@@ -121,6 +124,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
+      </ThemeProvider>
     </AuthProvider>
   );
 }
@@ -128,9 +132,12 @@ export default function App() {
 // ── Customer topbar (inline to keep routing simple) ────────────────────────
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useTheme } from './context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 
 function CustomerTopbar() {
   const { user, logout }       = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate               = useNavigate();
   const location               = useLocation();
   const [activeLang, setActiveLang] = useState('EN');
@@ -146,46 +153,66 @@ function CustomerTopbar() {
   function handleLogout() { logout(); navigate('/login'); }
 
   return (
-    <header style={{
-      background: '#0A1628', height: 56, display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between', padding: '0 24px',
-      position: 'sticky', top: 0, zIndex: 100,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-        <span style={{ fontWeight: 800, fontSize: 18, color: '#fff', letterSpacing: -0.5 }}>
-          Complaint<span style={{ color: '#00B4A6' }}>IQ</span>
+    <header className="h-14 sticky top-0 z-100 flex items-center justify-between px-6 bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <div className="flex items-center gap-6">
+        <span className="font-bold text-lg tracking-tight">
+          Complaint<span className="text-teal-600">IQ</span>
         </span>
-        <nav style={{ display: 'flex', gap: 4 }}>
+        <nav className="flex gap-1">
           {[
             { path: '/customer/new',   label: t.file },
             { path: '/customer/track', label: t.track },
           ].map(n => (
-            <button key={n.path} onClick={() => navigate(n.path)} style={{
-              background: location.pathname === n.path ? '#00B4A6' : 'transparent',
-              color: '#fff', border: 'none', borderRadius: 8, padding: '6px 14px',
-              cursor: 'pointer', fontSize: 13, fontWeight: 600,
-            }}>{n.label}</button>
+            <button
+              key={n.path}
+              onClick={() => navigate(n.path)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-200 ${
+                location.pathname === n.path
+                  ? 'bg-teal-600 text-white'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              {n.label}
+            </button>
           ))}
         </nav>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="flex items-center gap-3">
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-200"
+          title={isDark ? 'Light mode' : 'Dark mode'}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        
         {/* Language switcher */}
-        {/* TODO: i18n — Language switcher */}
-        <div style={{ display: 'flex', gap: 2, background: '#1E293B', borderRadius: 8, padding: 2 }}>
+        <div className="flex gap-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
           {['EN', 'हिं', 'தமி', 'मराठी'].map(l => (
-            <button key={l} onClick={() => setActiveLang(l)} style={{
-              background: activeLang === l ? '#00B4A6' : 'transparent',
-              color: '#fff', border: 'none', borderRadius: 6,
-              padding: '4px 7px', fontSize: 11, cursor: 'pointer', fontWeight: 600,
-            }}>🇮🇳 {l}</button>
+            <button
+              key={l}
+              onClick={() => setActiveLang(l)}
+              className={`px-2 py-1 rounded text-xs font-semibold transition-colors duration-200 ${
+                activeLang === l
+                  ? 'bg-teal-600 text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              🇮🇳 {l}
+            </button>
           ))}
         </div>
-        {user && <span style={{ fontSize: 12, color: '#94A3B8' }}>👤 {user.name}</span>}
-        <button onClick={handleLogout} style={{
-          background: '#1E293B', color: '#94A3B8', border: 'none',
-          borderRadius: 8, padding: '6px 12px', cursor: 'pointer', fontSize: 12,
-        }}>Logout</button>
+        
+        {user && <span className="text-xs font-medium text-slate-600 dark:text-slate-400">👤 {user.name}</span>}
+        
+        <button
+          onClick={handleLogout}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-500 transition-colors duration-200"
+        >
+          Logout
+        </button>
       </div>
     </header>
   );

@@ -37,8 +37,12 @@ instance.interceptors.response.use(
  * @param {string} password
  * @returns {{ user_id, name, role, token }}
  */
-const login = async (email, password) => {
-  const res = await instance.post('/auth/login', { email, password });
+const login = async (email, password, role) => {
+  const payload = { email, password };
+  if (role) {
+    payload.role = role;
+  }
+  const res = await instance.post('/auth/login', payload);
   return res.data;
 };
 

@@ -13,6 +13,7 @@ from schemas.complaint_schemas import (
     FeedbackCreate, AIDraftResponse,
 )
 from services import nlp_service, sla_service, dedup_service, rag_service
+from services.pii_masking import mask_account, mask_mobile, mask_email
 
 router = APIRouter(prefix="/complaints", tags=["complaints"])
 
@@ -39,6 +40,11 @@ def _make_event(complaint_id: int, event_type: str, description: str,
 def create_complaint(body: ComplaintCreate, db: Session = Depends(get_db)):
     now = datetime.now(timezone.utc)
 
+    # ── PII MASKING: Mask sensitive customer data before database storage ──
+    masked_account = mask_account(body.customer_account)
+    masked_mobile  = mask_mobile(body.customer_mobile)
+    masked_email   = mask_email(body.customer_email) if body.customer_email else None
+
     # Layer 2 + 3 — NLP classification
     nlp = nlp_service.classify_complaint(body.complaint_text)
 
@@ -47,24 +53,25 @@ def create_complaint(body: ComplaintCreate, db: Session = Depends(get_db)):
     deadline = sla_service.get_sla_deadline(tier, now)
 
     # Layer 3 — Duplicate detection
+    # Note: Use original account for dedup matching, but will store masked version
     recent = [
         {"id": c.id, "text": c.complaint_text, "filed_at": c.filed_at}
         for c in db.query(Complaint)
-            .filter(Complaint.customer_account == body.customer_account)
+            .filter(Complaint.customer_account == masked_account)
             .order_by(Complaint.filed_at.desc())
             .limit(20)
     ]
     dedup = dedup_service.check_duplicate(body.complaint_text, body.customer_account, recent)
 
-    # Persist
+    # Persist with MASKED PII
     ref = _gen_reference(db)
     c   = Complaint(
         reference_number          = ref,
-        customer_account          = body.customer_account,
-        customer_mobile           = body.customer_mobile,
-        customer_email            = body.customer_email,
+        customer_account          = masked_account,  # ← MASKED: Show only last 4 digits
+        customer_mobile           = masked_mobile,   # ← MASKED: Show only last 3 digits
+        customer_email            = masked_email,    # ← MASKED: Show only domain
         preferred_language        = (body.preferred_language or "EN")[:2].upper(),
-        product_category          = nlp["product_category"],
+        product_category          = body.product_category,
         complaint_text            = body.complaint_text,
         transaction_reference     = body.transaction_reference,
         incident_date             = body.incident_date,

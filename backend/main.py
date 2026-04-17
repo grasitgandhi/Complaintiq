@@ -13,9 +13,18 @@ import models.agent      # noqa: F401
 from api.routes.complaints import router as complaints_router
 from api.routes.analytics  import router as analytics_router, report_router
 from api.routes.auth       import router as auth_router
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create all tables on startup (dev mode — use Alembic for production)
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("✓ Database tables created/verified successfully")
+except Exception as e:
+    logger.warning(f"⚠ Could not create database tables on startup: {str(e)}")
+    logger.warning("  Make sure PostgreSQL is running on localhost:5432")
+    logger.warning("  Tables will be created when database becomes available.")
 
 app = FastAPI(
     title       = "ComplaintIQ API",

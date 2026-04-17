@@ -1,6 +1,7 @@
 // frontend/src/components/shared/Header.jsx
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import NotificationBell from './NotificationBell';
 
 const ROLE_BADGE = {
@@ -11,6 +12,7 @@ const ROLE_BADGE = {
 
 export default function Header() {
   const { user, role, logout } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
   const badge = ROLE_BADGE[role] || {};
 
@@ -20,50 +22,35 @@ export default function Header() {
   }
 
   return (
-    <header style={{
-      background: '#0A1628', color: '#fff',
-      height: 56, display: 'flex', alignItems: 'center',
-      justifyContent: 'space-between', padding: '0 24px',
-      position: 'sticky', top: 0, zIndex: 100,
-      borderBottom: '1px solid #1E293B',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 22 }}>⚖️</span>
-        <span style={{ fontWeight: 800, fontSize: 18, color: '#fff', letterSpacing: -0.5 }}>
-          Complaint<span style={{ color: '#00B4A6' }}>IQ</span>
+    <header className="h-14 sticky top-0 z-100 flex items-center justify-between px-6 bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+      <div className="flex items-center gap-2">
+        <span className="text-2xl">⚖️</span>
+        <span className="font-bold text-lg tracking-tight">
+          Complaint<span className="text-teal-600">IQ</span>
         </span>
-        <span style={{ fontSize: 11, color: '#475569', marginLeft: 8 }}>
+        <span className="text-xs text-slate-500 dark:text-slate-400 ml-2">
           State Bank of India
         </span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="flex items-center gap-3">
         {(role === 'agent' || role === 'manager') && <NotificationBell />}
 
         {user && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{
-              width: 30, height: 30, borderRadius: '50%',
-              background: '#1E3A5F', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#00B4A6',
-            }}>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-xs font-bold text-white">
               {user.name?.[0] || '?'}
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{user.name}</div>
-              <span style={{
-                fontSize: 10, fontWeight: 700, borderRadius: 10, padding: '1px 7px',
-                background: badge.bg, color: badge.color,
-              }}>{badge.label}</span>
+              <div className="text-sm font-semibold">{user.name}</div>
+              <span className="text-xs font-bold rounded-lg px-2 py-0.5 inline-block" style={{ background: badge.bg, color: badge.color }}>
+                {badge.label}
+              </span>
             </div>
           </div>
         )}
 
-        <button onClick={handleLogout} style={{
-          background: '#1E293B', color: '#94A3B8',
-          border: 'none', borderRadius: 8, padding: '6px 14px',
-          cursor: 'pointer', fontSize: 12, fontWeight: 600,
-        }}>
+        <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors duration-200">
           Logout
         </button>
       </div>

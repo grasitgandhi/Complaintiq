@@ -25,11 +25,18 @@ export default function SLATable({ data = ROWS }) {
   const cols = ['Tier', 'Total', 'On Time', 'Breached', 'Breach Rate', 'Avg Resolution'];
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-[13px]">
         <thead>
-          <tr style={{ borderBottom: '2px solid #F3F4F6' }}>
-            {cols.map(h => <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#6B7280', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>)}
+          <tr className="border-b border-slate-200 dark:border-slate-800">
+            {cols.map(h => (
+              <th
+                key={h}
+                className="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap"
+              >
+                {h}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -37,34 +44,34 @@ export default function SLATable({ data = ROWS }) {
             const tier = SLA_TIERS[row.tier] || {};
             const br   = brColor(row.breach_rate);
             return (
-              <tr key={row.tier} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                <td style={{ padding: '10px 14px' }}>
+              <tr key={row.tier} className="border-b border-slate-100 dark:border-slate-800">
+                <td className="px-4 py-2.5">
                   <span style={{ background: tier.bg, color: tier.color, borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 700 }}>{row.tier}</span>
                 </td>
-                <td style={{ padding: '10px 14px', fontWeight: 700 }}>{row.total}</td>
-                <td style={{ padding: '10px 14px', color: '#16A34A', fontWeight: 600 }}>{row.on_time}</td>
-                <td style={{ padding: '10px 14px', color: '#DC2626', fontWeight: 600 }}>{row.breached}</td>
-                <td style={{ padding: '10px 14px' }}>
+                <td className="px-4 py-2.5 font-bold text-slate-900 dark:text-slate-100">{row.total}</td>
+                <td className="px-4 py-2.5 text-emerald-600 dark:text-emerald-400 font-semibold">{row.on_time}</td>
+                <td className="px-4 py-2.5 text-red-600 dark:text-red-400 font-semibold">{row.breached}</td>
+                <td className="px-4 py-2.5">
                   <span style={{ background: br.bg, color: br.text, borderRadius: 8, padding: '3px 10px', fontWeight: 700, fontSize: 12 }}>{row.breach_rate}%</span>
                 </td>
-                <td style={{ padding: '10px 14px' }}>{row.avg_days}d</td>
+                <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{row.avg_days}d</td>
               </tr>
             );
           })}
           {/* Totals row */}
-          <tr style={{ background: '#F8F9FA', fontWeight: 700 }}>
-            <td style={{ padding: '10px 14px' }}>Total</td>
-            <td style={{ padding: '10px 14px' }}>{totals.total}</td>
-            <td style={{ padding: '10px 14px', color: '#16A34A' }}>{totals.on_time}</td>
-            <td style={{ padding: '10px 14px', color: '#DC2626' }}>{totals.breached}</td>
-            <td style={{ padding: '10px 14px' }}>
+          <tr className="bg-slate-50 dark:bg-slate-900 font-bold">
+            <td className="px-4 py-2.5 text-slate-900 dark:text-slate-100">Total</td>
+            <td className="px-4 py-2.5 text-slate-900 dark:text-slate-100">{totals.total}</td>
+            <td className="px-4 py-2.5 text-emerald-600 dark:text-emerald-400">{totals.on_time}</td>
+            <td className="px-4 py-2.5 text-red-600 dark:text-red-400">{totals.breached}</td>
+            <td className="px-4 py-2.5">
               <span style={{ ...brColor(parseFloat(totals.breach_rate)), borderRadius: 8, padding: '3px 10px', fontSize: 12, fontWeight: 700 }}>{totals.breach_rate}%</span>
             </td>
-            <td style={{ padding: '10px 14px' }}>—</td>
+            <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">—</td>
           </tr>
         </tbody>
       </table>
-      <p style={{ fontSize: 11, color: '#9CA3AF', padding: '8px 14px' }}>
+      <p className="text-[11px] text-slate-500 dark:text-slate-500 px-4 py-2">
         SLA tiers per RBI Integrated Ombudsman Scheme (Circular RBI/2023-24/117)
       </p>
     </div>

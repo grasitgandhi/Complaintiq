@@ -12,7 +12,7 @@ DB_URL = (
     f"{os.getenv('DB_PASSWORD','postgres')}@"
     f"{os.getenv('DB_HOST','localhost')}:"
     f"{os.getenv('DB_PORT','5432')}/"
-    f"{os.getenv('DB_NAME','complaintiq_db')}"
+    f"{os.getenv('DB_NAME','complaintiq')}"
 )
 
 engine       = create_engine(DB_URL, pool_pre_ping=True)

@@ -23,6 +23,9 @@ transformers==4.38.2
 torch==2.2.1
 sentence-transformers==2.5.1
 
+# NLP - Named Entity Recognition (for PII masking)
+spacy>=3.7.0
+
 # AI / ML — Layer 3 (FAISS dedup mock)
 faiss-cpu==1.9.0
 

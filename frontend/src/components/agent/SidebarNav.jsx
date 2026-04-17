@@ -1,45 +1,45 @@
 // frontend/src/components/agent/SidebarNav.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 
 export default function SidebarNav({ items }) {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   function handleLogout() { logout(); navigate('/login'); }
 
   return (
-    <div style={{
-      width: 220, background: '#0A1628', color: '#fff',
-      minHeight: '100vh', display: 'flex', flexDirection: 'column',
-      position: 'fixed', top: 0, left: 0, zIndex: 50,
-    }}>
+    <div className="w-[220px] bg-slate-50 dark:bg-[#0A1628] text-slate-900 dark:text-white min-h-screen flex flex-col fixed top-0 left-0 z-50 border-r border-slate-200 dark:border-slate-800">
       {/* Logo */}
-      <div style={{ padding: '20px 20px 18px', borderBottom: '1px solid #1E293B' }}>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>
+      <div className="px-5 pt-5 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
           Complaint<span style={{ color: '#00B4A6' }}>IQ</span>
         </div>
-        <div style={{ fontSize: 11, color: '#475569', marginTop: 3 }}>State Bank of India</div>
+        <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">State Bank of India</div>
       </div>
 
       {/* Nav items */}
-      <nav style={{ flex: 1, padding: '14px 10px' }}>
+      <nav className="flex-1 px-3 py-4">
         {items.map(item => {
           const active = location.pathname.startsWith(item.path);
           return (
-            <button key={item.path} onClick={() => navigate(item.path)} style={{
-              display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-              padding: '10px 12px', marginBottom: 4,
-              background: active ? '#1E3A5F' : 'transparent',
-              border: `1px solid ${active ? '#00B4A6' : 'transparent'}`,
-              borderRadius: 10, color: '#fff', cursor: 'pointer',
-              fontSize: 13, fontWeight: 600, textAlign: 'left',
-            }}>
-              <span style={{ fontSize: 16 }}>{item.icon}</span>
-              <span style={{ flex: 1 }}>{item.label}</span>
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg border text-sm font-semibold text-left transition-colors duration-200 ${
+                active
+                  ? 'bg-slate-100 dark:bg-[#1E3A5F] border-teal-500 text-slate-900 dark:text-white'
+                  : 'bg-transparent border-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'
+              }`}
+            >
+              <span className="text-base">{item.icon}</span>
+              <span className="flex-1">{item.label}</span>
               {item.badge > 0 && (
-                <span style={{ background: '#DC2626', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 700 }}>
+                <span className="bg-red-600 text-white rounded-full px-2 py-0.5 text-xs font-bold">
                   {item.badge}
                 </span>
               )}
@@ -49,13 +49,24 @@ export default function SidebarNav({ items }) {
       </nav>
 
       {/* User + logout */}
-      <div style={{ padding: '14px 18px', borderTop: '1px solid #1E293B' }}>
-        <div style={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</div>
-        <div style={{ fontSize: 11, color: '#475569', marginBottom: 10 }}>{user?.email}</div>
-        <button onClick={handleLogout} style={{
-          width: '100%', background: '#1E293B', color: '#64748B',
-          border: 'none', borderRadius: 8, padding: '7px', cursor: 'pointer', fontSize: 12,
-        }}>Logout</button>
+      <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="text-sm font-semibold text-slate-900 dark:text-white">{user?.name}</div>
+        <div className="text-xs text-slate-500 dark:text-slate-500 mb-3">{user?.email}</div>
+        <div className="flex gap-2 mb-2">
+          <button
+            onClick={toggleTheme}
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+            title={isDark ? 'Light mode' : 'Dark mode'}
+          >
+            {isDark ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full rounded-lg px-2 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

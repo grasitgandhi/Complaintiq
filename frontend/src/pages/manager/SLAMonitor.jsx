@@ -41,33 +41,33 @@ export default function SLAMonitor() {
   const highRisk = open.filter(c => (c.sla_breach_probability || 0) > 0.6);
 
   if (loading) return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
-      <div style={{ marginLeft: 220, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="ml-[220px] flex-1 flex items-center justify-center">
         <LoadingSpinner label="Loading SLA data…" />
       </div>
     </div>
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F9FA', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
 
-      <div style={{ marginLeft: 220, flex: 1, padding: '24px 28px', overflowY: 'auto' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0A1628', marginBottom: 20 }}>SLA Monitor</h2>
+      <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">SLA Monitor</h2>
 
         {/* Error state */}
         {error && (
-          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: '12px 18px', marginBottom: 20, color: '#991B1B', fontSize: 13 }}>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3 mb-5 text-red-700 dark:text-red-300 text-sm">
             {error}
           </div>
         )}
 
         {/* Alert banner */}
         {highRisk.length > 0 && (
-          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: '12px 18px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 18 }}>⚠</span>
-            <span style={{ color: '#991B1B', fontSize: 13, fontWeight: 600, flex: 1 }}>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-4 py-3 mb-5 flex items-center gap-3 flex-wrap">
+            <span className="text-lg">⚠</span>
+            <span className="text-red-700 dark:text-red-300 text-sm font-semibold flex-1">
               {highRisk.length} complaint{highRisk.length > 1 ? 's' : ''} at high breach risk — regulatory escalation imminent:&nbsp;
               {highRisk.map(c => {
                 const t = slaCountdown(c.sla_deadline);
@@ -78,26 +78,28 @@ export default function SLAMonitor() {
         )}
 
         {/* Table */}
-        <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #F3F4F6' }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0A1628', margin: 0 }}>Open Complaints — Sorted by SLA Deadline</h3>
-            <p style={{ fontSize: 12, color: '#9CA3AF', margin: '4px 0 0' }}>
+        <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm dark:shadow-md overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white m-0">Open Complaints — Sorted by SLA Deadline</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               AI Breach Probability by XGBoost (Layer 4) — target: breach rate below 3%
             </p>
           </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
               <thead>
-                <tr style={{ background: '#F8F9FA' }}>
+                <tr className="bg-slate-50 dark:bg-slate-900">
                   {['Reference', 'Customer', 'Product', 'Tier', 'Status', 'Time Remaining', 'Assigned Agent', 'AI Breach Risk', 'Actions'].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: '#6B7280', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} className="px-4 py-2.5 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {open.length === 0 ? (
                   <tr>
-                    <td colSpan={9} style={{ padding: '40px', textAlign: 'center', color: '#9CA3AF' }}>
+                    <td colSpan={9} className="px-4 py-10 text-center text-slate-500 dark:text-slate-400">
                       No open complaints found.
                     </td>
                   </tr>
@@ -106,15 +108,21 @@ export default function SLAMonitor() {
                   const t    = slaCountdown(c.sla_deadline);
                   const risk = breachRiskLabel(c.sla_breach_probability || 0);
                   return (
-                    <tr key={c.id} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                      <td style={{ padding: '10px 14px', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: '#0A1628', whiteSpace: 'nowrap' }}>{c.reference_number}</td>
-                      <td style={{ padding: '10px 14px' }}>{c.customer_name}</td>
-                      <td style={{ padding: '10px 14px' }}><span style={{ background: '#00B4A6', color: '#fff', borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 700 }}>{c.product_category}</span></td>
-                      <td style={{ padding: '10px 14px' }}><span style={{ background: tier.bg, color: tier.color, borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 700 }}>{c.sla_tier}</span></td>
-                      <td style={{ padding: '10px 14px' }}><span style={{ background: '#F3F4F6', color: '#374151', borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 700 }}>{STATUS_LABELS[c.status]}</span></td>
-                      <td style={{ padding: '10px 14px', color: t.color, fontWeight: 700, whiteSpace: 'nowrap' }}>{t.label}</td>
-                      <td style={{ padding: '10px 14px' }}>{c.assigned_agent || 'Unassigned'}</td>
-                      <td style={{ padding: '10px 14px' }}>
+                    <tr key={c.id} className="border-b border-slate-100 dark:border-slate-800">
+                      <td className="px-4 py-2.5 font-mono font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">{c.reference_number}</td>
+                      <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{c.customer_name}</td>
+                      <td className="px-4 py-2.5">
+                        <span className="bg-teal-600 text-white rounded-full px-2.5 py-0.5 text-xs font-bold">{c.product_category}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span style={{ background: tier.bg, color: tier.color, borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 700 }}>{c.sla_tier}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-0.5 text-xs font-bold">{STATUS_LABELS[c.status]}</span>
+                      </td>
+                      <td className="px-4 py-2.5 font-bold whitespace-nowrap" style={{ color: t.color }}>{t.label}</td>
+                      <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">{c.assigned_agent || 'Unassigned'}</td>
+                      <td className="px-4 py-2.5">
                         <div
                           title="XGBoost prediction (Layer 4) — based on time remaining, complaint status, and agent queue depth. Target: reduce breach rate below 3%."
                           style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'help' }}
@@ -125,8 +133,10 @@ export default function SLAMonitor() {
                           <span style={{ color: risk.color, fontWeight: 700, fontSize: 12 }}>{Math.round((c.sla_breach_probability || 0) * 100)}%</span>
                         </div>
                       </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <button style={{ fontSize: 11, background: '#F3F4F6', border: 'none', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', color: '#374151', fontWeight: 600 }}>Reassign</button>
+                      <td className="px-4 py-2.5">
+                        <button className="text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-md px-3 py-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200">
+                          Reassign
+                        </button>
                       </td>
                     </tr>
                   );

@@ -22,12 +22,12 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  async function login(email, password) {
+  async function login(email, password, role) {
     try {
-      const { user_id, name, role, token } = await api.auth.login(email, password);
-      const userData = { id: user_id, name, email };
-      persist(userData, role, token);
-      return { success: true, role };
+      const { user_id, name, role: userRole, token, email: normalizedEmail } = await api.auth.login(email, password, role);
+      const userData = { id: user_id, name, email: normalizedEmail || email };
+      persist(userData, userRole, token);
+      return { success: true, role: userRole };
     } catch (err) {
       const isNetworkError = !err.response;
       const message = isNetworkError

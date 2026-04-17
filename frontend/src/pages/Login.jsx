@@ -18,12 +18,13 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!email || !password) { setError('Please enter email and password.'); return; }
     setError(''); setLoading(true);
-    const result = await login(email, password);
+    const result = await login(email, password, selectedRole || undefined);
     setLoading(false);
     if (result.success) {
       navigate(ROLE_HOME[result.role] || '/login');
@@ -35,6 +36,7 @@ export default function Login() {
   function prefill(role) {
     setEmail(DEMO_CREDENTIALS[role].email);
     setPassword(DEMO_CREDENTIALS[role].password);
+    setSelectedRole(role);
     setError('');
   }
 
