@@ -2,13 +2,15 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Sun, Moon } from 'lucide-react';
 
 export default function SidebarNav({ items }) {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { lang, setLang, labels, t } = useLanguage();
 
   function handleLogout() { logout(); navigate('/login'); }
 
@@ -19,7 +21,7 @@ export default function SidebarNav({ items }) {
         <div className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
           Complaint<span style={{ color: '#00B4A6' }}>IQ</span>
         </div>
-        <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">State Bank of India</div>
+        <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">{t('State Bank of India')}</div>
       </div>
 
       {/* Nav items */}
@@ -30,14 +32,13 @@ export default function SidebarNav({ items }) {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg border text-sm font-semibold text-left transition-colors duration-200 ${
-                active
+              className={`w-full flex items-center gap-3 px-3 py-2.5 mb-1 rounded-lg border text-sm font-semibold text-left transition-colors duration-200 ${active
                   ? 'bg-slate-100 dark:bg-[#1E3A5F] border-teal-500 text-slate-900 dark:text-white'
                   : 'bg-transparent border-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10'
-              }`}
+                }`}
             >
               <span className="text-base">{item.icon}</span>
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1">{t(item.label)}</span>
               {item.badge > 0 && (
                 <span className="bg-red-600 text-white rounded-full px-2 py-0.5 text-xs font-bold">
                   {item.badge}
@@ -52,11 +53,24 @@ export default function SidebarNav({ items }) {
       <div className="px-4 py-4 border-t border-slate-200 dark:border-slate-800">
         <div className="text-sm font-semibold text-slate-900 dark:text-white">{user?.name}</div>
         <div className="text-xs text-slate-500 dark:text-slate-500 mb-3">{user?.email}</div>
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1 mb-2">
+          {Object.values(labels).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors duration-200 ${lang === l
+                ? 'bg-teal-600 text-white'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-2 mb-2">
           <button
             onClick={toggleTheme}
             className="flex-1 flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
-            title={isDark ? 'Light mode' : 'Dark mode'}
+            title={isDark ? t('Light mode') : t('Dark mode')}
           >
             {isDark ? <Sun size={14} /> : <Moon size={14} />}
           </button>
@@ -65,7 +79,7 @@ export default function SidebarNav({ items }) {
           onClick={handleLogout}
           className="w-full rounded-lg px-2 py-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
         >
-          Logout
+          {t('Logout')}
         </button>
       </div>
     </div>

@@ -39,6 +39,15 @@ PRODUCT_CATEGORY_MAP = {
     "OTHER": ProductCategory.OTHER,
 }
 
+CHANNEL_MAP = {
+    "ONLINE PORTAL": "Online Portal",
+    "EMAIL": "Email",
+    "PHONE": "Phone",
+    "BRANCH WALK-IN": "Branch Walk-in",
+    "BRANCH WALK IN": "Branch Walk-in",
+    "SOCIAL MEDIA": "Social Media",
+}
+
 
 def _normalize_product_category(raw_value: str) -> ProductCategory:
     key = (raw_value or "").strip().upper()
@@ -49,6 +58,11 @@ def _normalize_product_category(raw_value: str) -> ProductCategory:
             detail="Invalid product category. Use one of: UPI, NACH, SAVINGS, HOME_LOAN, CREDIT_CARD, FD, NRE, PMJDY, NET_BANKING, OTHER.",
         )
     return normalized
+
+
+def _normalize_channel(raw_value: Optional[str]) -> str:
+    key = (raw_value or "Online Portal").strip().upper()
+    return CHANNEL_MAP.get(key, "Online Portal")
 
 
 def _gen_reference(db: Session) -> str:
@@ -73,6 +87,7 @@ def _make_event(complaint_id: int, event_type: str, description: str,
 def create_complaint(body: ComplaintCreate, db: Session = Depends(get_db)):
     now = datetime.now(timezone.utc)
     normalized_product = _normalize_product_category(body.product_category)
+    normalized_channel = _normalize_channel(body.channel)
 
     # ── PII MASKING: Mask sensitive customer data before database storage ──
     masked_account = mask_account(body.customer_account)
@@ -106,7 +121,9 @@ def create_complaint(body: ComplaintCreate, db: Session = Depends(get_db)):
         customer_email            = masked_email,    # ← MASKED: Show only domain
         preferred_language        = (body.preferred_language or "EN")[:2].upper(),
         product_category          = normalized_product,
+        channel                   = normalized_channel,
         complaint_text            = body.complaint_text,
+        attachments               = [a.model_dump() for a in (body.attachments or [])],
         transaction_reference     = body.transaction_reference,
         incident_date             = body.incident_date,
         filed_at                  = now,

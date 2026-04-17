@@ -4,15 +4,24 @@ from typing import Optional, List
 from datetime import datetime
 
 
+class AttachmentIn(BaseModel):
+    name: str
+    mime_type: str
+    size_kb: int
+    data_base64: str
+
+
 class ComplaintCreate(BaseModel):
     customer_account:    str
     customer_mobile:     str
     customer_email:      Optional[str] = None
     preferred_language:  Optional[str] = "EN"
     product_category:    str
+    channel:             Optional[str] = "Online Portal"
     complaint_text:      str
     incident_date:       Optional[str] = None
     transaction_reference: Optional[str] = None
+    attachments:         Optional[List[AttachmentIn]] = []
 
     @field_validator("customer_mobile")
     @classmethod
@@ -54,7 +63,9 @@ class ComplaintOut(BaseModel):
     customer_name:    Optional[str]
     customer_mobile:  Optional[str]
     product_category: str
+    channel:          Optional[str]
     complaint_text:   str
+    attachments:      Optional[List[dict]] = []
     filed_at:         datetime
     status:           str
     sla_tier:         str

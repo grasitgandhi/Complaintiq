@@ -3,17 +3,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import SidebarNav from '../../components/agent/SidebarNav';
-import ComplaintCard from '../../components/agent/ComplaintCard';
 import ComplaintQueue from '../../components/agent/ComplaintQueue';
-import LoadingSkeleton from '../../components/agent/LoadingSkeleton';
 import api from '../../services/api';
 
-const AGENT_NAV = [
+const AGENT_NAV_BASE = [
   { path: '/agent/queue', icon: '📋', label: 'My Queue' },
   { path: '/agent/all', icon: '📂', label: 'All Complaints' },
-  { path: '/agent/escalations', icon: '🚨', label: 'Escalations', badge: 2 },
+  { path: '/agent/escalations', icon: '🚨', label: 'Escalations' },
   { path: '/agent/performance', icon: '📈', label: 'My Performance' },
 ];
 
@@ -49,12 +47,16 @@ function computeStats(complaints) {
 
 export default function AgentQueue() {
   const { token } = useAuth();
-  const { isDark } = useTheme();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
+  const [escalationCount, setEscalationCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tierFilter, setTierFilter] = useState('All');
-  const [search, setSearch] = useState('');
+
+  const agentNavItems = AGENT_NAV_BASE.map((item) => {
+    if (item.path !== '/agent/escalations') return item;
+    return escalationCount > 0 ? { ...item, badge: escalationCount } : item;
+  });
 
   useEffect(() => {
     async function load() {
@@ -62,40 +64,60 @@ export default function AgentQueue() {
       try {
         const data = await api.complaints.list({ agent_id: 'me' });
         setComplaints(data);
+
+        const openEscalations = (Array.isArray(data) ? data : []).filter((c) =>
+          c.escalation_threat_detected && c.status !== 'Resolved' && c.status !== 'Closed'
+        );
+        setEscalationCount(openEscalations.length);
+
+        const escalation = (data || []).find(c =>
+          c.escalation_threat_detected && c.status !== 'Resolved' && c.status !== 'Closed'
+        );
+
+        if (escalation) {
+          toast(
+            <span>
+              {t('Priority alert:')} <strong>{escalation.reference_number}</strong> {t('has regulatory escalation keywords.')}
+              <button
+                onClick={() => navigate(`/agent/complaint/${escalation.id || escalation.reference_number}`)}
+                style={{
+                  marginLeft: 8,
+                  background: 'none',
+                  border: 'none',
+                  color: '#0F766E',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  textDecoration: 'underline',
+                }}
+              >
+                {t('Open →')}
+              </button>
+            </span>,
+            {
+              duration: 7000,
+              style: {
+                background: '#FFF7ED',
+                color: '#7C2D12',
+                border: '1px solid #FDBA74',
+                maxWidth: 560,
+              },
+              icon: '⚠️',
+            }
+          );
+        }
       } catch (err) {
-        toast.error(err.message || 'Failed to load queue.');
+        setEscalationCount(0);
+        toast.error(err.message || t('Failed to load queue.'));
       } finally {
         setLoading(false);
       }
     }
     load();
-
-    // Escalation alert on first load (refinement: polling every 30s)
-    const timer = setTimeout(() => {
-      toast.error(
-        <span>
-          ⚠ Escalation risk: <strong>CIQ-2026-000002</strong> — Banking Ombudsman mentioned
-          <button onClick={() => navigate('/agent/complaint/2')} style={{ marginLeft: 8, background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 700, textDecoration: 'underline' }}>
-            Open →
-          </button>
-        </span>,
-        { duration: 8000, style: { background: '#991B1B', color: '#fff', maxWidth: 400 } }
-      );
-    }, 1500);
-
-    return () => clearTimeout(timer);
   }, [token]);
-
-  const stats = computeStats(complaints);
-
-  const filtered = complaints.filter(c =>
-    (tierFilter === 'All' || c.sla_tier === tierFilter) &&
-    (!search || c.reference_number?.toLowerCase().includes(search.toLowerCase()) || c.customer_name?.toLowerCase().includes(search.toLowerCase()))
-  );
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100 transition-colors duration-300">
-      <SidebarNav items={AGENT_NAV} />
+      <SidebarNav items={agentNavItems} />
 
       <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
         {/* Use new ComplaintQueue Table Component */}

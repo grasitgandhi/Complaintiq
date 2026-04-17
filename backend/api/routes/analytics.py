@@ -207,30 +207,106 @@ report_router = APIRouter(prefix="/reports", tags=["reports"])
 
 @report_router.get("/monthly", response_model=MonthlyReportData)
 def monthly_report(db: Session = Depends(get_db)):
-    now   = datetime.now(timezone.utc)
+    now = datetime.now(timezone.utc)
     month = now.strftime("%B %Y")
 
+    all_rows = db.query(Complaint).all()
+
+    # Table 1 — category summary
     by_cat = []
     for row in db.query(Complaint.product_category, func.count(Complaint.id))\
                  .group_by(Complaint.product_category).all():
-        cnt  = row[1]
+        category = row[0].value if hasattr(row[0], "value") else str(row[0])
+        cnt = row[1]
         disp = db.query(Complaint).filter(
             Complaint.product_category == row[0],
-            Complaint.status.in_(["Resolved","Closed"])
+            Complaint.status.in_(["Resolved", "Closed"])
         ).count()
-        by_cat.append({"category": row[0], "received": cnt, "pending_prev": 0, "disposed": disp, "pending_end": cnt - disp})
+        by_cat.append({
+            "category": category,
+            "received": cnt,
+            "pending_prev": 0,
+            "disposed": disp,
+            "pending_end": max(cnt - disp, 0),
+        })
+
+    # Table 2 — mode of receipt (explicit stored channel)
+    channel_counts = {
+        "Online Portal": 0,
+        "Email": 0,
+        "Phone": 0,
+        "Branch Walk-in": 0,
+        "Social Media": 0,
+    }
+
+    for c in all_rows:
+        channel = (getattr(c, "channel", None) or "Online Portal").strip()
+        if channel not in channel_counts:
+            channel = "Online Portal"
+        channel_counts[channel] += 1
+
+    total_received = len(all_rows)
+    by_channel = []
+    for ch in ["Online Portal", "Email", "Phone", "Branch Walk-in", "Social Media"]:
+        count = channel_counts[ch]
+        if count == 0:
+            continue
+        pct = round((count / total_received) * 100) if total_received else 0
+        by_channel.append({"channel": ch, "count": count, "pct": pct})
+
+    # Table 3 — top complaint grounds (use AI complaint type where available)
+    top_ground_rows = db.query(Complaint.ai_complaint_type, func.count(Complaint.id))\
+        .filter(Complaint.ai_complaint_type.isnot(None))\
+        .group_by(Complaint.ai_complaint_type)\
+        .order_by(func.count(Complaint.id).desc())\
+        .limit(10)\
+        .all()
+
+    top_grounds = [
+        {"ground": row[0], "count": row[1]}
+        for row in top_ground_rows
+        if row[0]
+    ]
+
+    # Fallback to product category if complaint type is missing
+    if not top_grounds:
+        fallback_rows = db.query(Complaint.product_category, func.count(Complaint.id))\
+            .group_by(Complaint.product_category)\
+            .order_by(func.count(Complaint.id).desc())\
+            .limit(10)\
+            .all()
+        top_grounds = [
+            {
+                "ground": (row[0].value if hasattr(row[0], "value") else str(row[0])),
+                "count": row[1],
+            }
+            for row in fallback_rows
+        ]
+
+    # Table 4 — disposal breakdown for resolved/closed complaints
+    disposed_rows = [
+        c for c in all_rows
+        if c.status in (ComplaintStatus.Resolved, ComplaintStatus.Closed)
+    ]
+    within_sla = sum(
+        1 for c in disposed_rows
+        if c.resolved_at is not None and c.sla_deadline is not None and c.resolved_at <= c.sla_deadline
+    )
+    beyond_sla = sum(
+        1 for c in disposed_rows
+        if c.resolved_at is not None and c.sla_deadline is not None and c.resolved_at > c.sla_deadline
+    )
+    total_disposed = len(disposed_rows)
 
     return MonthlyReportData(
-        bank_name   = BANK_NAME,
-        period      = month,
-        by_category = by_cat,
-        by_channel  = [
-            {"channel": "Online Portal",  "count": 71, "pct": 41},
-            {"channel": "Email",          "count": 43, "pct": 25},
-            {"channel": "Phone",          "count": 31, "pct": 18},
-            {"channel": "Branch Walk-in", "count": 17, "pct": 10},
-            {"channel": "Social Media",   "count": 10, "pct":  6},
-        ],
-        top_grounds = [{"ground": "UPI Failure", "count": 52}],
-        disposal    = {"within_sla": 138, "beyond_sla": 4, "total": 142},
+        bank_name=BANK_NAME,
+        period=month,
+        by_category=by_cat,
+        by_channel=by_channel,
+        top_grounds=top_grounds,
+        disposal={
+            "within_sla": within_sla,
+            "beyond_sla": beyond_sla,
+            "total": total_disposed,
+        },
     )

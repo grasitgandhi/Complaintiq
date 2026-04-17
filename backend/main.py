@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+from sqlalchemy import text
 
 load_dotenv()
 
@@ -20,6 +21,8 @@ logger = logging.getLogger(__name__)
 # Create all tables on startup (dev mode — use Alembic for production)
 try:
     Base.metadata.create_all(bind=engine)
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE complaints ADD COLUMN IF NOT EXISTS attachments JSONB DEFAULT '[]'::jsonb"))
     logger.info("✓ Database tables created/verified successfully")
 except Exception as e:
     logger.warning(f"⚠ Could not create database tables on startup: {str(e)}")

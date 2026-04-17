@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
 from database import get_db
-from models.agent import Agent
+from models.agent import Agent, AgentRole
 import json
 import base64
 
@@ -39,6 +39,14 @@ class RegisterResponse(BaseModel):
     email:   str
     role:    str
     message: str
+
+
+class AssignableAgent(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+    team: str | None
 
 
 def _generate_token(user_id: int, role: str, name: str, email: str) -> str:
@@ -276,3 +284,38 @@ def verify_role(token: str, required_role: str):
         )
 
     return {"status": "authorized", "role": user_role, "user_id": decoded.get("user_id")}
+
+
+# ── GET /auth/agents ─────────────────────────────────────────────────────────
+@router.get("/agents", response_model=list[AssignableAgent])
+def list_assignable_agents(db: Session = Depends(get_db)):
+    """
+    Return active users that can be selected in reassignment UI.
+    Prefer AGENT role; if none exist, fallback to all active users.
+    """
+    role_to_label = {
+        AgentRole.AGENT: "agent",
+        AgentRole.MANAGER: "manager",
+        AgentRole.COMPLIANCE: "compliance",
+    }
+
+    active_agents = db.query(Agent).filter(
+        Agent.is_active == True,
+        Agent.role == AgentRole.AGENT,
+    ).order_by(Agent.name).all()
+
+    if not active_agents:
+        active_agents = db.query(Agent).filter(
+            Agent.is_active == True,
+        ).order_by(Agent.name).all()
+
+    return [
+        AssignableAgent(
+            id=a.id,
+            name=a.name,
+            email=a.email,
+            role=role_to_label.get(a.role, "agent"),
+            team=a.team,
+        )
+        for a in active_agents
+    ]

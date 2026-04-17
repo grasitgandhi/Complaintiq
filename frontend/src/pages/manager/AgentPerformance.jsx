@@ -2,6 +2,7 @@
 import { Fragment, useState, useEffect } from 'react';
 import SidebarNav from '../../components/agent/SidebarNav';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import { useLanguage } from '../../context/LanguageContext';
 import api from '../../services/api';
 
 const MANAGER_NAV = [
@@ -23,6 +24,7 @@ function MiniBar({ value, max, color }) {
 }
 
 export default function AgentPerformance() {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(null);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function AgentPerformance() {
         const rows = await api.analytics.agentPerformance();
         setAgents(Array.isArray(rows) ? rows : []);
       } catch (err) {
-        setError(err.message || 'Failed to load agent performance.');
+        setError(err.message || t('Failed to load agent performance.'));
       } finally {
         setLoading(false);
       }
@@ -49,7 +51,7 @@ export default function AgentPerformance() {
       <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
         <SidebarNav items={MANAGER_NAV} />
         <div className="ml-[220px] flex-1 flex items-center justify-center">
-          <LoadingSpinner label="Loading agent performance..." />
+          <LoadingSpinner label={t('Loading agent performance...')} />
         </div>
       </div>
     );
@@ -71,7 +73,7 @@ export default function AgentPerformance() {
       <SidebarNav items={MANAGER_NAV} />
 
       <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">Agent Performance — March 2026</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">{t('Agent Performance — March 2026')}</h2>
 
         <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm dark:shadow-md overflow-hidden">
           <table className="w-full border-collapse text-[13px]">
@@ -81,7 +83,7 @@ export default function AgentPerformance() {
                   'Agent', 'Assigned', 'Resolved', 'Avg Handle Time',
                   'CSAT', 'SLA Compliance', 'AI Draft Usage',
                 ].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">{t(h)}</th>
                 ))}
               </tr>
             </thead>
@@ -99,7 +101,7 @@ export default function AgentPerformance() {
                     </td>
                     <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{a.assigned}</td>
                     <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 font-bold">{a.resolved}</td>
-                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{a.avg_handle_days} days</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{a.avg_handle_days} {t('days')}</td>
                     <td className="px-4 py-3">
                       <span className="font-bold text-slate-900 dark:text-slate-100">{a.csat.toFixed(1)}</span>
                       <span className="text-amber-500 ml-1">★</span>
@@ -129,7 +131,7 @@ export default function AgentPerformance() {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                           <div>
                             <h5 className="text-xs text-slate-600 dark:text-slate-400 font-bold mb-3">
-                              Complaints by Product
+                              {t('Complaints by Product')}
                             </h5>
                             {a.by_product.map(p => (
                               <div key={p.product} className="flex items-center gap-2.5 mb-2">
@@ -141,12 +143,12 @@ export default function AgentPerformance() {
 
                           <div>
                             <h5 className="text-xs text-slate-600 dark:text-slate-400 font-bold mb-3">
-                              Customer Sentiment Breakdown
+                              {t('Customer Sentiment Breakdown')}
                             </h5>
                             {[
-                              { label: 'Frustrated', value: a.sentiment.frustrated, color: '#DC2626' },
-                              { label: 'Neutral', value: a.sentiment.neutral, color: '#9CA3AF' },
-                              { label: 'Satisfied', value: a.sentiment.satisfied, color: '#16A34A' },
+                              { label: t('Frustrated'), value: a.sentiment.frustrated, color: '#DC2626' },
+                              { label: t('Neutral'), value: a.sentiment.neutral, color: '#9CA3AF' },
+                              { label: t('Satisfied'), value: a.sentiment.satisfied, color: '#16A34A' },
                             ].map(s => (
                               <div key={s.label} className="flex items-center gap-2.5 mb-2">
                                 <span className="text-xs text-slate-700 dark:text-slate-300 w-20 flex-shrink-0">{s.label}</span>
@@ -167,7 +169,7 @@ export default function AgentPerformance() {
               {agents.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                    No agent performance data available.
+                    {t('No agent performance data available.')}
                   </td>
                 </tr>
               )}

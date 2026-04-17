@@ -55,6 +55,15 @@ const me = async () => {
   return res.data;
 };
 
+/**
+ * Get active assignable agents for manager reassignment flows.
+ * @returns {Array<{id:number,name:string,email:string,role:string,team?:string}>}
+ */
+const listAgents = async () => {
+  const res = await instance.get('/auth/agents');
+  return res.data;
+};
+
 // ── Complaints ────────────────────────────────────────────────────────────────
 
 /**
@@ -91,10 +100,11 @@ const getComplaint = async (id) => {
  * Update complaint status.
  * @param {string|number} id
  * @param {string} status
+ * @param {{ agent_id?: number, note?: string }} [options]
  * @returns {object} updated complaint
  */
-const updateStatus = async (id, status) => {
-  const res = await instance.patch(`/complaints/${id}/status`, { status });
+const updateStatus = async (id, status, options = {}) => {
+  const res = await instance.patch(`/complaints/${id}/status`, { status, ...options });
   return res.data;
 };
 
@@ -198,7 +208,7 @@ const agentPerformance = async () => {
 // ── Export named groups ───────────────────────────────────────────────────────
 
 const api = {
-  auth: { login, me },
+  auth: { login, me, listAgents },
   complaints: {
     create: createComplaint,
     list: listComplaints,

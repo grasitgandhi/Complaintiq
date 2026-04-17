@@ -90,6 +90,7 @@ export default function ComplaintQueue({ complaints = [], loading = false, onOpe
       date: c.filed_at || c.created_at,
       customer: c.customer_name || c.customer_account || 'Unknown',
       product: c.product_category || 'OTHER',
+      channel: c.channel || 'Online Portal',
       description: c.complaint_text || c.ai_complaint_type || 'No description',
       severity: c.sla_tier || c.ai_severity || 'P3',
       status: c.status || 'New',
@@ -121,6 +122,7 @@ export default function ComplaintQueue({ complaints = [], loading = false, onOpe
         (row) =>
           row.id.toLowerCase().includes(globalFilter.toLowerCase()) ||
           row.customer.toLowerCase().includes(globalFilter.toLowerCase()) ||
+          row.channel.toLowerCase().includes(globalFilter.toLowerCase()) ||
           row.description.toLowerCase().includes(globalFilter.toLowerCase())
       );
     }
@@ -181,6 +183,15 @@ export default function ComplaintQueue({ complaints = [], loading = false, onOpe
             fontWeight: 'medium',
           }}
         >
+          {info.getValue()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'channel',
+      header: 'Source',
+      cell: (info) => (
+        <span className="text-sm text-slate-700 dark:text-slate-200">
           {info.getValue()}
         </span>
       ),

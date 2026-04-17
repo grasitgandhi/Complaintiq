@@ -1,6 +1,11 @@
 // frontend/src/pages/manager/RBIReports.jsx
 import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import SidebarNav from '../../components/agent/SidebarNav';
+import { useLanguage } from '../../context/LanguageContext';
 import api from '../../services/api';
 
 const MANAGER_NAV = [
@@ -17,6 +22,7 @@ const HISTORY = [
 ];
 
 export default function RBIReports() {
+  const { t } = useLanguage();
   const [month, setMonth] = useState('March 2026');
   const [bankName, setBankName] = useState('State Bank of India');
   const [reportType, setType] = useState('Monthly Summary');
@@ -35,7 +41,7 @@ export default function RBIReports() {
       const data = await api.analytics.monthlyReport();
       setReportData(data);
     } catch (err) {
-      setError(err.message || 'Failed to generate report. Please try again.');
+      setError(err.message || t('Failed to generate report. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -69,6 +75,149 @@ export default function RBIReports() {
 
   const generated = !!reportData;
 
+  function reportFileBaseName() {
+    return `${bankName}_${month}_${reportType}`
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_-]/g, '');
+  }
+
+  function requireGeneratedReport() {
+    if (!generated || !reportData) {
+      toast.error(t('Generate report before downloading.'));
+      return false;
+    }
+    return true;
+  }
+
+  function downloadExcel() {
+    if (!requireGeneratedReport()) return;
+
+    const rows = [];
+    rows.push([t('RBI MONTHLY COMPLAINT REPORT')]);
+    rows.push([bankName, month]);
+    rows.push([]);
+
+    rows.push([t('Table 1 — Category-wise Complaint Summary')]);
+    rows.push([t('Category'), t('Received'), t('Pending (Prev Month)'), t('Disposed'), t('Pending (Month End)')]);
+    if (productRows.length === 0) {
+      rows.push([t('No category data available.')]);
+    } else {
+      productRows.forEach((r) => rows.push([r.category, r.received, r.pending_prev, r.disposed, r.pending_end]));
+      rows.push([t('Total'), totals.recv, totals.prev, totals.disp, totals.end]);
+    }
+    rows.push([]);
+
+    rows.push([t('Table 2 — Mode of Receipt')]);
+    rows.push([t('Channel'), t('Count'), '%']);
+    if (channelRows.length === 0) {
+      rows.push([t('No channel data available.')]);
+    } else {
+      channelRows.forEach((r) => rows.push([r.channel, r.count, `${r.pct}%`]));
+    }
+    rows.push([]);
+
+    if (topGroundRows.length > 0) {
+      rows.push([t('Table 3 — Top 10 Grounds of Complaints')]);
+      rows.push([t('Ground'), t('Count')]);
+      topGroundRows.forEach((r) => rows.push([r.ground, r.count]));
+      rows.push([]);
+    }
+
+    if (reportData?.disposal) {
+      rows.push([t('Table 4 — Disposal Breakdown')]);
+      rows.push([t('Within SLA'), t('Beyond SLA'), t('Total Disposed')]);
+      rows.push([reportData.disposal.within_sla, reportData.disposal.beyond_sla, reportData.disposal.total]);
+    }
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'RBI Report');
+    XLSX.writeFile(wb, `${reportFileBaseName()}.xlsx`);
+  }
+
+  function downloadPdf() {
+    if (!requireGeneratedReport()) return;
+
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFontSize(14);
+    doc.text(t('RBI MONTHLY COMPLAINT REPORT'), pageWidth / 2, 40, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`${bankName} · ${month}`, pageWidth / 2, 58, { align: 'center' });
+
+    let y = 76;
+
+    doc.setFontSize(11);
+    doc.text(t('Table 1 — Category-wise Complaint Summary'), 40, y);
+    y += 8;
+    autoTable(doc, {
+      startY: y,
+      head: [[t('Category'), t('Received'), t('Pending (Prev Month)'), t('Disposed'), t('Pending (Month End)')]],
+      body: productRows.length === 0
+        ? [[t('No category data available.'), '', '', '', '']]
+        : [
+          ...productRows.map((r) => [r.category, r.received, r.pending_prev, r.disposed, r.pending_end]),
+          [t('Total'), totals.recv, totals.prev, totals.disp, totals.end],
+        ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [15, 23, 42] },
+    });
+
+    y = (doc.lastAutoTable?.finalY || y) + 20;
+    doc.setFontSize(11);
+    doc.text(t('Table 2 — Mode of Receipt'), 40, y);
+    y += 8;
+    autoTable(doc, {
+      startY: y,
+      head: [[t('Channel'), t('Count'), '%']],
+      body: channelRows.length === 0
+        ? [[t('No channel data available.'), '', '']]
+        : channelRows.map((r) => [r.channel, r.count, `${r.pct}%`]),
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [15, 23, 42] },
+    });
+
+    y = (doc.lastAutoTable?.finalY || y) + 20;
+
+    if (topGroundRows.length > 0) {
+      if (y > 700) {
+        doc.addPage();
+        y = 40;
+      }
+      doc.setFontSize(11);
+      doc.text(t('Table 3 — Top 10 Grounds of Complaints'), 40, y);
+      y += 8;
+      autoTable(doc, {
+        startY: y,
+        head: [[t('Ground'), t('Count')]],
+        body: topGroundRows.map((r) => [r.ground, r.count]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [15, 23, 42] },
+      });
+      y = (doc.lastAutoTable?.finalY || y) + 20;
+    }
+
+    if (reportData?.disposal) {
+      if (y > 700) {
+        doc.addPage();
+        y = 40;
+      }
+      doc.setFontSize(11);
+      doc.text(t('Table 4 — Disposal Breakdown'), 40, y);
+      y += 8;
+      autoTable(doc, {
+        startY: y,
+        head: [[t('Within SLA'), t('Beyond SLA'), t('Total Disposed')]],
+        body: [[reportData.disposal.within_sla, reportData.disposal.beyond_sla, reportData.disposal.total]],
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [15, 23, 42] },
+      });
+    }
+
+    doc.save(`${reportFileBaseName()}.pdf`);
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
@@ -76,26 +225,26 @@ export default function RBIReports() {
       <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
         {/* Page header */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">RBI Monthly Complaint Report — Auto-Generated</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">{t('RBI Monthly Complaint Report — Auto-Generated')}</h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">Reserve Bank of India · Integrated Ombudsman Scheme · {month}</p>
         </div>
 
         {/* Value callout banner */}
-        <div className="bg-teal-600 rounded-2xl px-5 py-4 mb-6 flex gap-3 items-start">
+        <div className="bg-[#00B4A6] rounded-2xl px-5 py-4 mb-6 flex gap-3 items-start">
           <span className="text-2xl flex-shrink-0">⏱</span>
           <div>
             <p className="text-sm font-bold text-white m-0 mb-1">
-              This report previously required 40–60 staff hours/month to compile manually.
+              {t('This report previously required 40–60 staff hours/month to compile manually.')}
             </p>
             <p className="text-xs text-white/80 m-0">
-              ComplaintIQ generates it from live data in under 2 minutes.
+              {t('ComplaintIQ generates it from live data in under 2 minutes.')}
             </p>
           </div>
         </div>
 
         {/* Configuration card */}
         <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm dark:shadow-md mb-6">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-5">Generate Report</h3>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-5">{t('Generate Report')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
             <div>
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Month</label>
@@ -123,9 +272,9 @@ export default function RBIReports() {
           <button
             onClick={doGenerate}
             disabled={loading}
-            className="rounded-lg px-6 py-3 font-bold text-sm bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-60"
+            className="rounded-lg px-6 py-3 font-bold text-sm bg-[#00B4A6] text-white hover:bg-[#009E90] disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#00B4A6]/60 transition-colors"
           >
-            {loading ? '⏳ Generating…' : 'Generate Report'}
+            {loading ? t('⏳ Generating…') : t('Generate Report')}
           </button>
 
           {/* Error message */}
@@ -223,7 +372,7 @@ export default function RBIReports() {
             {topGroundRows.length > 0 && (
               <>
                 <h4 className="text-[13px] font-bold text-slate-900 dark:text-white mb-2.5">
-                  Table 3 — Top 10 Grounds of Complaints
+                  {t('Table 3 — Top 10 Grounds of Complaints')}
                 </h4>
                 <div className="overflow-x-auto mb-6">
                   <table className="w-full border-collapse text-xs">
@@ -276,19 +425,19 @@ export default function RBIReports() {
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-3 mt-4">
-              <button className="bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-lg px-5 py-2.5 font-semibold text-[13px] transition-colors">
-                ↓ Download PDF
+              <button onClick={downloadPdf} className="bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white rounded-lg px-5 py-2.5 font-semibold text-[13px] transition-colors">
+                {t('↓ Download PDF')}
               </button>
-              <button className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-5 py-2.5 font-semibold text-[13px] transition-colors">
-                ↓ Download Excel
+              <button onClick={downloadExcel} className="bg-green-600 hover:bg-green-700 text-white rounded-lg px-5 py-2.5 font-semibold text-[13px] transition-colors">
+                {t('↓ Download Excel')}
               </button>
               <button onClick={() => setSubmitted(true)} className={`
-                ${submitted 
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-[1.5px] border-green-300 dark:border-green-800' 
+                ${submitted
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-[1.5px] border-green-300 dark:border-green-800'
                   : 'bg-transparent text-teal-600 dark:text-teal-400 border-[1.5px] border-teal-500 dark:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20'
                 } rounded-lg px-5 py-2.5 font-semibold text-[13px] transition-colors
               `}>
-                {submitted ? '✓ Submitted to RBI' : 'Mark as Submitted to RBI'}
+                {submitted ? t('✓ Submitted to RBI') : t('Mark as Submitted to RBI')}
               </button>
             </div>
           </div>

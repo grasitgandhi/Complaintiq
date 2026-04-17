@@ -76,7 +76,9 @@ class Complaint(Base):
 
     # Complaint core
     product_category  = Column(SAEnum(ProductCategory), nullable=False)
+    channel           = Column(String(40), default="Online Portal")
     complaint_text    = Column(Text, nullable=False)
+    attachments       = Column(JSONB, default=list)
     transaction_reference = Column(String(100))
     incident_date     = Column(String(20))
     filed_at          = Column(DateTime(timezone=True), server_default=func.now())

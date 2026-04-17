@@ -1,6 +1,8 @@
 // frontend/src/pages/manager/ManagerOverview.jsx
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import SidebarNav from '../../components/agent/SidebarNav';
 import StatCard from '../../components/manager/StatCard';
 import SLATable from '../../components/manager/SLATable';
@@ -17,6 +19,8 @@ const MANAGER_NAV = [
 
 export default function ManagerOverview() {
   const { token } = useAuth();
+  const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,9 +38,15 @@ export default function ManagerOverview() {
           api.analytics.slaPerformance(),
         ]);
 
-        setData({ summary, volume, by_product: byProduct, sentiment, sla_performance: slaPerformance });
+        setData({
+          summary: summary || {},
+          volume: Array.isArray(volume) ? volume : [],
+          by_product: Array.isArray(byProduct) ? byProduct : [],
+          sentiment: Array.isArray(sentiment) ? sentiment : [],
+          sla_performance: Array.isArray(slaPerformance) ? slaPerformance : [],
+        });
       } catch (err) {
-        setError(err.message || 'Failed to load analytics.');
+        setError(err.message || t('Failed to load analytics.'));
       } finally {
         setLoading(false);
       }
@@ -48,7 +58,7 @@ export default function ManagerOverview() {
     <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
       <div className="ml-[220px] flex-1 flex items-center justify-center">
-        <LoadingSpinner label="Loading analytics…" />
+        <LoadingSpinner label={t('Loading analytics…')} />
       </div>
     </div>
   );
@@ -62,7 +72,17 @@ export default function ManagerOverview() {
     </div>
   );
 
-  const { summary, volume, by_product, sentiment, sla_performance } = data;
+  const summary = data?.summary || {};
+  const volume = data?.volume || [];
+  const by_product = data?.by_product || [];
+  const sentiment = data?.sentiment || [];
+  const sla_performance = data?.sla_performance || [];
+
+  const openCount = Number(summary.open || 0);
+  const breachRate = Number(summary.breach_rate || 0);
+  const avgResolution = Number(summary.avg_resolution || 0);
+  const aiAutomation = Number(summary.ai_automation || 0);
+  const csatScore = Number(summary.csat || 0);
 
   // Map by_product to { product, count } shape for donut chart
   const productData = (by_product || []).map(p => ({ product: p.product, count: p.count }));
@@ -80,33 +100,35 @@ export default function ManagerOverview() {
     .slice(0, 5)
     .map(p => ({ type: p.product, count: p.count }));
 
+  const avgResolutionColor = isDark ? '#E2E8F0' : '#0A1628';
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-[#0A0A0A] text-slate-900 dark:text-slate-100">
       <SidebarNav items={MANAGER_NAV} />
 
       <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">Overview Dashboard</h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">{t('Overview Dashboard')}</h2>
 
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3.5 mb-6">
-          <StatCard label="Total Open" value={summary.open} color="#00B4A6" sub="Complaints" />
-          <StatCard label="SLA Breach Rate" value={`${summary.breach_rate}%`} color={summary.breach_rate > 5 ? '#DC2626' : '#16A34A'}
-            sub="This month" tooltip="RBI IOS threshold — regulatory penalties above 5%" />
-          <StatCard label="Avg Resolution" value={`${summary.avg_resolution}d`} color="#0A1628"
-            sub="↓ 0.3d vs last month" subColor="#16A34A" />
-          <StatCard label="AI Automation" value={`${summary.ai_automation}%`} color="#7C3AED"
-            sub="No-edit approvals" tooltip="Industry benchmark: NatWest Cora+ achieved 49% no-edit rate at 11.2M conversations (H1 2025)" />
-          <StatCard label="CSAT Score" value={`${summary.csat}/5`} color="#F59E0B" sub="Last 30 days" />
+          <StatCard label={t('Total Open')} value={openCount} color="#00B4A6" sub={t('Complaints')} />
+          <StatCard label={t('SLA Breach Rate')} value={`${breachRate}%`} color={breachRate > 5 ? '#DC2626' : '#16A34A'}
+            sub={t('This month')} tooltip={t('RBI IOS threshold — regulatory penalties above 5%')} />
+          <StatCard label={t('Avg Resolution')} value={`${avgResolution}d`} color={avgResolutionColor}
+            sub={t('↓ 0.3d vs last month')} subColor="#16A34A" />
+          <StatCard label={t('AI Automation')} value={`${aiAutomation}%`} color="#7C3AED"
+            sub={t('No-edit approvals')} tooltip={t('Industry benchmark: NatWest Cora+ achieved 49% no-edit rate at 11.2M conversations (H1 2025)')} />
+          <StatCard label={t('CSAT Score')} value={`${csatScore}/5`} color="#F59E0B" sub={t('Last 30 days')} />
         </div>
 
         {/* Charts row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Daily Complaint Volume (Last 30 Days)</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">{t('Daily Complaint Volume (Last 30 Days)')}</h4>
             <VolumeLineChart data={volume} />
           </div>
           <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Complaints by Product Category</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">{t('Complaints by Product Category')}</h4>
             <ProductDonutChart data={productData} />
           </div>
         </div>
@@ -114,11 +136,11 @@ export default function ManagerOverview() {
         {/* Charts row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Sentiment by Product Category</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">{t('Sentiment by Product Category')}</h4>
             <SentimentBarChart data={sentimentData} />
           </div>
           <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-md">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">Top 5 Complaint Types by Volume</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-4">{t('Top 5 Complaint Types by Volume')}</h4>
             <TopTypesChart data={top_types} />
           </div>
         </div>
@@ -126,7 +148,7 @@ export default function ManagerOverview() {
         {/* SLA performance table */}
         <div className="bg-white dark:bg-[#161B22] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm dark:shadow-md overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white m-0">SLA Performance by Tier</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white m-0">{t('SLA Performance by Tier')}</h4>
           </div>
           <SLATable data={sla_performance || []} />
         </div>
