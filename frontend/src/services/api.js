@@ -12,7 +12,7 @@ instance.interceptors.request.use((config) => {
     try {
       const { token } = JSON.parse(stored);
       if (token) config.headers.Authorization = `Bearer ${token}`;
-    } catch (_) {}
+    } catch (_) { }
   }
   return config;
 });
@@ -186,6 +186,15 @@ const monthlyReport = async () => {
   return res.data;
 };
 
+/**
+ * Get agent performance metrics.
+ * @returns {Array}
+ */
+const agentPerformance = async () => {
+  const res = await instance.get('/analytics/agent-performance');
+  return res.data;
+};
+
 // ── Export named groups ───────────────────────────────────────────────────────
 
 const api = {
@@ -206,6 +215,7 @@ const api = {
     slaPerformance,
     sentiment,
     monthlyReport,
+    agentPerformance,
   },
 };
 

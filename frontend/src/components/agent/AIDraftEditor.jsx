@@ -2,10 +2,12 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { API_BASE } from '../../constants';
 
 export default function AIDraftEditor({ complaint, draft, setDraft, onDraftChange }) {
-  const { token }      = useAuth();
+  const { token } = useAuth();
+  const { isDark } = useTheme();
   const [streaming, setStreaming] = useState(false);
   const [charCount, setCharCount] = useState(draft?.length || 0);
   const textareaRef = useRef();
@@ -57,7 +59,7 @@ export default function AIDraftEditor({ complaint, draft, setDraft, onDraftChang
     <div>
       {/* Streaming state: animated typing dots */}
       {streaming ? (
-        <div style={{ minHeight: 180, background: '#F8F9FA', borderRadius: 10, padding: '14px', fontSize: 13, color: '#374151', lineHeight: 1.7, border: '1.5px solid #E5E7EB' }}>
+        <div style={{ minHeight: 180, background: isDark ? '#0F172A' : '#F8F9FA', borderRadius: 10, padding: '14px', fontSize: 13, color: isDark ? '#E2E8F0' : '#374151', lineHeight: 1.7, border: isDark ? '1.5px solid #334155' : '1.5px solid #E5E7EB' }}>
           {draft && renderHighlighted(draft)}
           <span style={{ display: 'inline-block', width: 2, height: 14, background: '#00B4A6', marginLeft: 2, animation: 'blink-cursor 0.7s infinite' }} />
         </div>
@@ -67,7 +69,7 @@ export default function AIDraftEditor({ complaint, draft, setDraft, onDraftChang
           value={draft}
           onChange={e => { setDraft(e.target.value); setCharCount(e.target.value.length); onDraftChange?.(); }}
           rows={10}
-          style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: isDark ? '1.5px solid #334155' : '1.5px solid #E5E7EB', fontSize: 13, resize: 'vertical', lineHeight: 1.7, boxSizing: 'border-box', background: isDark ? '#0B1220' : '#fff', color: isDark ? '#E2E8F0' : '#0F172A' }}
         />
       )}
 
@@ -79,12 +81,12 @@ export default function AIDraftEditor({ complaint, draft, setDraft, onDraftChang
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button onClick={regenerate} disabled={streaming} style={{
-          background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: 8,
+          background: isDark ? '#1F2937' : '#F3F4F6', color: isDark ? '#E2E8F0' : '#374151', border: 'none', borderRadius: 8,
           padding: '7px 14px', cursor: streaming ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600,
         }}>
           ↺ Regenerate Draft
         </button>
-        <button style={{ background: 'none', border: '1.5px solid #E5E7EB', color: '#374151', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+        <button style={{ background: 'none', border: isDark ? '1.5px solid #334155' : '1.5px solid #E5E7EB', color: isDark ? '#E2E8F0' : '#374151', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
           Save Draft
         </button>
       </div>

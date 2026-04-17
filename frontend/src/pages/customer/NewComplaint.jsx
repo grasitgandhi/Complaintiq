@@ -4,11 +4,29 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import StepProgressBar from '../../components/customer/StepProgressBar';
 import FileUploadArea from '../../components/customer/FileUploadArea';
-import { PRODUCT_CATEGORIES, LANGUAGES } from '../../constants';
+import { LANGUAGES } from '../../constants';
 import { isValidMobile } from '../../utils';
 import api from '../../services/api';
 
 const STEPS = ['Your Details', 'Complaint', 'Documents', 'Review'];
+
+const PRODUCT_CATEGORY_OPTIONS = [
+  { value: 'UPI', label: 'UPI Payment' },
+  { value: 'NACH', label: 'NACH Mandate' },
+  { value: 'SAVINGS', label: 'Savings Account' },
+  { value: 'HOME_LOAN', label: 'Home Loan' },
+  { value: 'CREDIT_CARD', label: 'Credit Card' },
+  { value: 'FD', label: 'Fixed Deposit' },
+  { value: 'NRE', label: 'NRE Account' },
+  { value: 'PMJDY', label: 'PMJDY Account' },
+  { value: 'NET_BANKING', label: 'Net Banking' },
+  { value: 'OTHER', label: 'Other' },
+];
+
+const PRODUCT_LABEL_BY_VALUE = PRODUCT_CATEGORY_OPTIONS.reduce((acc, curr) => {
+  acc[curr.value] = curr.label;
+  return acc;
+}, {});
 
 const ESCALATION_PHRASES = [
   'report to rbi', 'banking ombudsman', 'consumer court', 'rbi ombudsman',
@@ -26,10 +44,10 @@ function detectEscalation(text) {
 }
 
 export default function NewComplaint() {
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
-  const [step, setStep]       = useState(0);
-  const [errors, setErrors]   = useState({});
+  const [step, setStep] = useState(0);
+  const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
@@ -48,17 +66,17 @@ export default function NewComplaint() {
   function validate() {
     const e = {};
     if (step === 0) {
-      if (!form.account)                 e.account = 'Account number is required.';
+      if (!form.account) e.account = 'Account number is required.';
       else if (form.account.length > 20) e.account = 'Max 20 characters.';
-      if (!form.mobile)                  e.mobile  = 'Mobile number is required.';
+      if (!form.mobile) e.mobile = 'Mobile number is required.';
       else if (!isValidMobile(form.mobile)) e.mobile = 'Enter valid 10-digit mobile starting with 6–9.';
       if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Invalid email format.';
     }
     if (step === 1) {
-      if (!form.product)                              e.product = 'Please select a product.';
-      if (!form.desc || form.desc.length < 30)        e.desc    = 'Description must be at least 30 characters.';
-      if (!form.date)                                 e.date    = 'Incident date is required.';
-      else if (new Date(form.date) > new Date())      e.date    = 'Incident date cannot be in the future.';
+      if (!form.product) e.product = 'Please select a product.';
+      if (!form.desc || form.desc.length < 30) e.desc = 'Description must be at least 30 characters.';
+      if (!form.date) e.date = 'Incident date is required.';
+      else if (new Date(form.date) > new Date()) e.date = 'Incident date cannot be in the future.';
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -71,13 +89,13 @@ export default function NewComplaint() {
   async function handleSubmit() {
     setSubmitting(true);
     const payload = {
-      customer_account:      form.account,
-      customer_mobile:       form.mobile,
-      customer_email:        form.email,
-      preferred_language:    form.lang,
-      product_category:      form.product,
-      complaint_text:        form.desc,
-      incident_date:         form.date,
+      customer_account: form.account,
+      customer_mobile: form.mobile,
+      customer_email: form.email,
+      preferred_language: form.lang,
+      product_category: form.product,
+      complaint_text: form.desc,
+      incident_date: form.date,
       transaction_reference: form.ref,
     };
     try {
@@ -105,8 +123,8 @@ export default function NewComplaint() {
 
             {[
               { key: 'account', label: 'Account Number', type: 'text', placeholder: 'Your bank account number', max: 20 },
-              { key: 'mobile',  label: 'Mobile Number',  type: 'tel',  placeholder: '10-digit number starting with 6–9' },
-              { key: 'email',   label: 'Email Address (Optional)', type: 'email', placeholder: 'your@email.com' },
+              { key: 'mobile', label: 'Mobile Number', type: 'tel', placeholder: '10-digit number starting with 6–9' },
+              { key: 'email', label: 'Email Address (Optional)', type: 'email', placeholder: 'your@email.com' },
             ].map(f => (
               <div key={f.key} className="mb-5">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
@@ -118,7 +136,7 @@ export default function NewComplaint() {
                   maxLength={f.max}
                   onChange={e => set(f.key, e.target.value)}
                   placeholder={f.placeholder}
-                  className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border ${ errors[f.key] ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
+                  className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border ${errors[f.key] ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
                 />
                 {errors[f.key] && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors[f.key]}</p>}
               </div>
@@ -152,18 +170,20 @@ export default function NewComplaint() {
               <select
                 value={form.product}
                 onChange={e => set('product', e.target.value)}
-                className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border ${ errors.product ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
+                className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border ${errors.product ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
               >
                 <option value="">Select a product</option>
-                {PRODUCT_CATEGORIES.map(p => <option key={p}>{p}</option>)}
+                {PRODUCT_CATEGORY_OPTIONS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
               </select>
               {errors.product && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.product}</p>}
-              {form.product === 'NACH Mandate' && (
+              {form.product === 'NACH' && (
                 <p className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg p-2 mt-2">
                   ℹ National Automated Clearing House — handles EMI and recurring payments
                 </p>
               )}
-              {form.product === 'PMJDY Account' && (
+              {form.product === 'PMJDY' && (
                 <p className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg p-2 mt-2">
                   ℹ Pradhan Mantri Jan-Dhan Yojana — government basic savings accounts
                 </p>
@@ -181,7 +201,7 @@ export default function NewComplaint() {
                 placeholder="Describe your complaint in detail (minimum 30 characters)…"
                 maxLength={500}
                 rows={5}
-                className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border ${ errors.desc ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
+                className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 border ${errors.desc ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
               />
               <div className="flex justify-between mt-1">
                 {errors.desc ? (
@@ -189,7 +209,7 @@ export default function NewComplaint() {
                 ) : (
                   <span />
                 )}
-                <span className={`text-xs ${ form.desc.length >= 450 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                <span className={`text-xs ${form.desc.length >= 450 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-600'}`}>
                   {form.desc.length} / 500
                 </span>
               </div>
@@ -213,7 +233,7 @@ export default function NewComplaint() {
                   value={form.date}
                   max={today}
                   onChange={e => set('date', e.target.value)}
-                  className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border ${ errors.date ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
+                  className={`w-full px-4 py-2.5 rounded-lg text-sm bg-slate-50 dark:bg-[#0D1117] text-slate-900 dark:text-white border ${errors.date ? 'border-red-500 dark:border-red-500' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200`}
                 />
                 {errors.date && <p className="text-red-600 dark:text-red-400 text-xs mt-1">{errors.date}</p>}
               </div>
@@ -253,18 +273,18 @@ export default function NewComplaint() {
                 heading: 'Your Details',
                 rows: [
                   ['Account Number', form.account],
-                  ['Mobile',         form.mobile],
-                  ['Email',          form.email || '—'],
+                  ['Mobile', form.mobile],
+                  ['Email', form.email || '—'],
                   ['Preferred Language', form.lang],
                 ],
               },
               {
                 heading: 'Complaint Details',
                 rows: [
-                  ['Product',        form.product],
-                  ['Description',    form.desc],
-                  ['Incident Date',  form.date],
-                  ['Transaction Ref',form.ref || '—'],
+                  ['Product', PRODUCT_LABEL_BY_VALUE[form.product] || form.product],
+                  ['Description', form.desc],
+                  ['Incident Date', form.date],
+                  ['Transaction Ref', form.ref || '—'],
                 ],
               },
               {
@@ -327,7 +347,7 @@ export default function NewComplaint() {
             <button
               onClick={handleSubmit}
               disabled={!form.confirmed || submitting}
-              className={`px-8 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-200 ${ form.confirmed && !submitting
+              className={`px-8 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-200 ${form.confirmed && !submitting
                 ? 'bg-teal-600 text-white hover:bg-teal-700'
                 : 'bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 cursor-not-allowed'}`}
             >

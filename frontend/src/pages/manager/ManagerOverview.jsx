@@ -10,30 +10,31 @@ import api from '../../services/api';
 
 const MANAGER_NAV = [
   { path: '/manager/overview', icon: '📊', label: 'Overview' },
-  { path: '/manager/sla',      icon: '⏱',  label: 'SLA Monitor' },
-  { path: '/manager/reports',  icon: '📄',  label: 'RBI Reports' },
-  { path: '/manager/agents',   icon: '👥',  label: 'Agent Performance' },
+  { path: '/manager/sla', icon: '⏱', label: 'SLA Monitor' },
+  { path: '/manager/reports', icon: '📄', label: 'RBI Reports' },
+  { path: '/manager/agents', icon: '👥', label: 'Agent Performance' },
 ];
 
 export default function ManagerOverview() {
-  const { token }   = useAuth();
-  const [data, setData]     = useState(null);
+  const { token } = useAuth();
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       setError(null);
       try {
-        const [summary, volume, byProduct, sentiment] = await Promise.all([
+        const [summary, volume, byProduct, sentiment, slaPerformance] = await Promise.all([
           api.analytics.summary(),
           api.analytics.volume(),
           api.analytics.byProduct(),
           api.analytics.sentiment(),
+          api.analytics.slaPerformance(),
         ]);
 
-        setData({ summary, volume, by_product: byProduct, sentiment });
+        setData({ summary, volume, by_product: byProduct, sentiment, sla_performance: slaPerformance });
       } catch (err) {
         setError(err.message || 'Failed to load analytics.');
       } finally {
@@ -61,7 +62,7 @@ export default function ManagerOverview() {
     </div>
   );
 
-  const { summary, volume, by_product, sentiment } = data;
+  const { summary, volume, by_product, sentiment, sla_performance } = data;
 
   // Map by_product to { product, count } shape for donut chart
   const productData = (by_product || []).map(p => ({ product: p.product, count: p.count }));
@@ -127,7 +128,7 @@ export default function ManagerOverview() {
           <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
             <h4 className="text-xs font-bold text-slate-900 dark:text-white m-0">SLA Performance by Tier</h4>
           </div>
-          <SLATable />
+          <SLATable data={sla_performance || []} />
         </div>
       </div>
     </div>

@@ -73,7 +73,7 @@ function StatusBadge({ status }) {
   );
 }
 
-export default function ComplaintQueue({ complaints = [], loading = false }) {
+export default function ComplaintQueue({ complaints = [], loading = false, onOpenComplaint }) {
   const { isDark } = useTheme();
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState('');
@@ -85,6 +85,8 @@ export default function ComplaintQueue({ complaints = [], loading = false }) {
   const data = useMemo(() => {
     return (complaints || []).map((c) => ({
       id: c.reference_number || c.id,
+      complaintId: c.id,
+      referenceNumber: c.reference_number,
       date: c.filed_at || c.created_at,
       customer: c.customer_name || c.customer_account || 'Unknown',
       product: c.product_category || 'OTHER',
@@ -225,6 +227,31 @@ export default function ComplaintQueue({ complaints = [], loading = false }) {
               minute: '2-digit',
             })}
           </span>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: 'Action',
+      cell: (info) => {
+        const row = info.row.original;
+        const complaintKey = row.complaintId || row.referenceNumber || row.id;
+        return (
+          <button
+            onClick={() => onOpenComplaint?.(complaintKey)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 700,
+              background: '#00B4A6',
+              color: '#FFFFFF',
+              border: '1px solid #009688',
+              cursor: 'pointer',
+            }}
+          >
+            Open
+          </button>
         );
       },
     },

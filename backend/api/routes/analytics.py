@@ -10,8 +10,9 @@ from database import get_db
 from models.complaint import Complaint, ComplaintStatus, SLATier, SentimentLabel
 from schemas.analytics_schemas import (
     SummaryStats, VolumePoint, ProductCount,
-    SLAPerformanceRow, SentimentRow, MonthlyReportData,
+    SLAPerformanceRow, SentimentRow, MonthlyReportData, AgentPerformanceRow,
 )
+from models.agent import Agent, AgentRole
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -123,6 +124,82 @@ def sentiment(db: Session = Depends(get_db)):
         else:
             agg[product]["neutral"] += cnt
     return [SentimentRow(product=k, **v) for k, v in agg.items()]
+
+
+@router.get("/agent-performance", response_model=List[AgentPerformanceRow])
+def agent_performance(db: Session = Depends(get_db)):
+    agents = db.query(Agent).filter(Agent.role == AgentRole.AGENT).all()
+    result = []
+
+    for agent in agents:
+        assigned_rows = db.query(Complaint).filter(Complaint.assigned_agent_id == agent.id).all()
+        resolved_rows = [
+            c for c in assigned_rows
+            if c.status in (ComplaintStatus.Resolved, ComplaintStatus.Closed)
+        ]
+
+        handle_durations = [
+            (c.resolved_at - c.filed_at).total_seconds() / 86400
+            for c in resolved_rows
+            if c.resolved_at and c.filed_at
+        ]
+        avg_handle_days = round(sum(handle_durations) / len(handle_durations), 1) if handle_durations else 0.0
+
+        csat_values = [c.csat_rating for c in assigned_rows if c.csat_rating is not None]
+        csat = round(sum(csat_values) / len(csat_values), 1) if csat_values else 0.0
+
+        resolved_with_deadline = [
+            c for c in resolved_rows
+            if c.sla_deadline is not None and c.resolved_at is not None
+        ]
+        within_sla = sum(1 for c in resolved_with_deadline if c.resolved_at <= c.sla_deadline)
+        sla_pct = round((within_sla / len(resolved_with_deadline)) * 100, 1) if resolved_with_deadline else 0.0
+
+        ai_eligible = [c for c in resolved_rows if c.ai_draft_response]
+        ai_no_edit = sum(1 for c in ai_eligible if not c.draft_edited_by_agent)
+        ai_usage = round((ai_no_edit / len(ai_eligible)) * 100, 1) if ai_eligible else 0.0
+
+        by_product_map = {}
+        for c in assigned_rows:
+            key = str(c.product_category)
+            by_product_map[key] = by_product_map.get(key, 0) + 1
+        by_product = [
+            {"product": k, "count": v}
+            for k, v in sorted(by_product_map.items(), key=lambda x: x[1], reverse=True)
+        ]
+
+        frustrated = 0
+        neutral = 0
+        satisfied = 0
+        for c in assigned_rows:
+            if c.ai_sentiment in (SentimentLabel.FRUSTRATED, SentimentLabel.VERY_FRUSTRATED):
+                frustrated += 1
+            elif c.ai_sentiment == SentimentLabel.SATISFIED:
+                satisfied += 1
+            else:
+                neutral += 1
+
+        result.append(
+            AgentPerformanceRow(
+                id=agent.id,
+                name=agent.name,
+                team=agent.team or "Unassigned Team",
+                assigned=len(assigned_rows),
+                resolved=len(resolved_rows),
+                avg_handle_days=avg_handle_days,
+                csat=csat,
+                sla_pct=sla_pct,
+                ai_usage=ai_usage,
+                by_product=by_product,
+                sentiment={
+                    "frustrated": frustrated,
+                    "neutral": neutral,
+                    "satisfied": satisfied,
+                },
+            )
+        )
+
+    return result
 
 
 # ── RBI Monthly Report ────────────────────────────────────────────────────────

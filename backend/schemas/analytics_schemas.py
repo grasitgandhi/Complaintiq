@@ -45,3 +45,28 @@ class MonthlyReportData(BaseModel):
     by_channel:   List[dict]
     top_grounds:  List[dict]
     disposal:     dict
+
+
+class AgentProductCount(BaseModel):
+    product: str
+    count: int
+
+
+class AgentSentimentBreakdown(BaseModel):
+    frustrated: int
+    neutral: int
+    satisfied: int
+
+
+class AgentPerformanceRow(BaseModel):
+    id: int
+    name: str
+    team: str
+    assigned: int
+    resolved: int
+    avg_handle_days: float
+    csat: float
+    sla_pct: float
+    ai_usage: float
+    by_product: List[AgentProductCount]
+    sentiment: AgentSentimentBreakdown

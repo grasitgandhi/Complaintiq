@@ -11,8 +11,8 @@ import LoadingSkeleton from '../../components/agent/LoadingSkeleton';
 import api from '../../services/api';
 
 const AGENT_NAV = [
-  { path: '/agent/queue',       icon: '📋', label: 'My Queue' },
-  { path: '/agent/all',         icon: '📂', label: 'All Complaints' },
+  { path: '/agent/queue', icon: '📋', label: 'My Queue' },
+  { path: '/agent/all', icon: '📂', label: 'All Complaints' },
   { path: '/agent/escalations', icon: '🚨', label: 'Escalations', badge: 2 },
   { path: '/agent/performance', icon: '📈', label: 'My Performance' },
 ];
@@ -40,21 +40,21 @@ function computeStats(complaints) {
   ).length;
 
   return [
-    { label: 'My Open',            value: myOpen,           color: '#00B4A6' },
-    { label: 'Due Today',          value: dueToday,         color: '#D97706' },
-    { label: 'Overdue',            value: overdue,          color: '#DC2626' },
+    { label: 'My Open', value: myOpen, color: '#00B4A6' },
+    { label: 'Due Today', value: dueToday, color: '#D97706' },
+    { label: 'Overdue', value: overdue, color: '#DC2626' },
     { label: 'Resolved This Week', value: resolvedThisWeek, color: '#16A34A' },
   ];
 }
 
 export default function AgentQueue() {
-  const { token }  = useAuth();
+  const { token } = useAuth();
   const { isDark } = useTheme();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading] = useState(true);
   const [tierFilter, setTierFilter] = useState('All');
-  const [search, setSearch]         = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -99,7 +99,11 @@ export default function AgentQueue() {
 
       <div className="ml-[220px] flex-1 p-6 sm:p-7 overflow-y-auto">
         {/* Use new ComplaintQueue Table Component */}
-        <ComplaintQueue complaints={complaints} loading={loading} />
+        <ComplaintQueue
+          complaints={complaints}
+          loading={loading}
+          onOpenComplaint={(complaintKey) => navigate(`/agent/complaint/${complaintKey}`)}
+        />
       </div>
     </div>
   );

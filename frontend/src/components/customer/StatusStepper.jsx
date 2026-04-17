@@ -1,5 +1,7 @@
 // frontend/src/components/customer/StatusStepper.jsx
 
+import { useTheme } from '../../context/ThemeContext';
+
 const STEPS = ['Received', 'Under Review', 'Response Drafted', 'Resolved'];
 const STATUS_IDX = {
   New: 0, InProgress: 1, AwaitingCustomer: 1,
@@ -7,6 +9,7 @@ const STATUS_IDX = {
 };
 
 export default function StatusStepper({ status }) {
+  const { isDark } = useTheme();
   const idx = STATUS_IDX[status] ?? 0;
   return (
     <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -15,8 +18,8 @@ export default function StatusStepper({ status }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <div style={{
               width: 22, height: 22, borderRadius: '50%',
-              background: i <= idx ? '#00B4A6' : '#E5E7EB',
-              border: `2px solid ${i <= idx ? '#00B4A6' : '#D1D5DB'}`,
+              background: i <= idx ? '#00B4A6' : (isDark ? '#1F2937' : '#E5E7EB'),
+              border: `2px solid ${i <= idx ? '#00B4A6' : (isDark ? '#334155' : '#D1D5DB')}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 11, color: '#fff', fontWeight: 700, flexShrink: 0,
             }}>
@@ -26,10 +29,10 @@ export default function StatusStepper({ status }) {
                   ? <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff', display: 'block', animation: 'pulse-dot 1.4s infinite' }} />
                   : null}
             </div>
-            <span style={{ fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap', color: i <= idx ? '#00B4A6' : '#9CA3AF' }}>{s}</span>
+            <span style={{ fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap', color: i <= idx ? '#00B4A6' : (isDark ? '#94A3B8' : '#9CA3AF') }}>{s}</span>
           </div>
           {i < STEPS.length - 1 && (
-            <div style={{ flex: 1, height: 2, background: i < idx ? '#00B4A6' : '#E5E7EB', margin: '0 4px', marginBottom: 18 }} />
+            <div style={{ flex: 1, height: 2, background: i < idx ? '#00B4A6' : (isDark ? '#334155' : '#E5E7EB'), margin: '0 4px', marginBottom: 18 }} />
           )}
         </div>
       ))}

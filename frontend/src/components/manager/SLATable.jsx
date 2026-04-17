@@ -1,26 +1,20 @@
 // frontend/src/components/manager/SLATable.jsx
 import { SLA_TIERS } from '../../constants';
 
-const ROWS = [
-  { tier: 'P1', total: 12, on_time: 11, breached: 1, breach_rate: 8.3, avg_days: 0.9 },
-  { tier: 'P2', total: 28, on_time: 27, breached: 1, breach_rate: 3.6, avg_days: 1.8 },
-  { tier: 'P3', total: 76, on_time: 74, breached: 2, breach_rate: 2.6, avg_days: 3.9 },
-  { tier: 'P4', total: 26, on_time: 26, breached: 0, breach_rate: 0.0, avg_days: 7.2 },
-];
-
 function brColor(br) {
   if (br > 10) return { bg: '#FEE2E2', text: '#DC2626' };
-  if (br >  5) return { bg: '#FEF3C7', text: '#D97706' };
-  return             { bg: '#F0FDF4', text: '#16A34A' };
+  if (br > 5) return { bg: '#FEF3C7', text: '#D97706' };
+  return { bg: '#F0FDF4', text: '#16A34A' };
 }
 
-export default function SLATable({ data = ROWS }) {
-  const totals = data.reduce((acc, r) => ({
-    total:       acc.total    + r.total,
-    on_time:     acc.on_time  + r.on_time,
-    breached:    acc.breached + r.breached,
+export default function SLATable({ data = [] }) {
+  const safeData = Array.isArray(data) ? data : [];
+  const totals = safeData.reduce((acc, r) => ({
+    total: acc.total + r.total,
+    on_time: acc.on_time + r.on_time,
+    breached: acc.breached + r.breached,
   }), { total: 0, on_time: 0, breached: 0 });
-  totals.breach_rate = ((totals.breached / totals.total) * 100).toFixed(1);
+  totals.breach_rate = totals.total > 0 ? ((totals.breached / totals.total) * 100).toFixed(1) : '0.0';
 
   const cols = ['Tier', 'Total', 'On Time', 'Breached', 'Breach Rate', 'Avg Resolution'];
 
@@ -40,9 +34,16 @@ export default function SLATable({ data = ROWS }) {
           </tr>
         </thead>
         <tbody>
-          {data.map(row => {
+          {safeData.length === 0 && (
+            <tr>
+              <td colSpan={6} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
+                No SLA performance data available.
+              </td>
+            </tr>
+          )}
+          {safeData.map(row => {
             const tier = SLA_TIERS[row.tier] || {};
-            const br   = brColor(row.breach_rate);
+            const br = brColor(row.breach_rate);
             return (
               <tr key={row.tier} className="border-b border-slate-100 dark:border-slate-800">
                 <td className="px-4 py-2.5">
@@ -59,7 +60,7 @@ export default function SLATable({ data = ROWS }) {
             );
           })}
           {/* Totals row */}
-          <tr className="bg-slate-50 dark:bg-slate-900 font-bold">
+          {safeData.length > 0 && <tr className="bg-slate-50 dark:bg-slate-900 font-bold">
             <td className="px-4 py-2.5 text-slate-900 dark:text-slate-100">Total</td>
             <td className="px-4 py-2.5 text-slate-900 dark:text-slate-100">{totals.total}</td>
             <td className="px-4 py-2.5 text-emerald-600 dark:text-emerald-400">{totals.on_time}</td>
@@ -68,7 +69,7 @@ export default function SLATable({ data = ROWS }) {
               <span style={{ ...brColor(parseFloat(totals.breach_rate)), borderRadius: 8, padding: '3px 10px', fontSize: 12, fontWeight: 700 }}>{totals.breach_rate}%</span>
             </td>
             <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300">—</td>
-          </tr>
+          </tr>}
         </tbody>
       </table>
       <p className="text-[11px] text-slate-500 dark:text-slate-500 px-4 py-2">

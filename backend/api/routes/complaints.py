@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from database import get_db
-from models.complaint import Complaint, ComplaintEvent, ActorType, ComplaintStatus
+from models.complaint import Complaint, ComplaintEvent, ActorType, ComplaintStatus, ProductCategory
 from models.agent import Agent
 from schemas.complaint_schemas import (
     ComplaintCreate, ComplaintCreateResponse, ComplaintOut,
@@ -16,6 +16,39 @@ from services import nlp_service, sla_service, dedup_service, rag_service
 from services.pii_masking import mask_account, mask_mobile, mask_email
 
 router = APIRouter(prefix="/complaints", tags=["complaints"])
+
+PRODUCT_CATEGORY_MAP = {
+    "UPI": ProductCategory.UPI,
+    "UPI PAYMENT": ProductCategory.UPI,
+    "NACH": ProductCategory.NACH,
+    "NACH MANDATE": ProductCategory.NACH,
+    "SAVINGS": ProductCategory.SAVINGS,
+    "SAVINGS ACCOUNT": ProductCategory.SAVINGS,
+    "HOME_LOAN": ProductCategory.HOME_LOAN,
+    "HOME LOAN": ProductCategory.HOME_LOAN,
+    "CREDIT_CARD": ProductCategory.CREDIT_CARD,
+    "CREDIT CARD": ProductCategory.CREDIT_CARD,
+    "FD": ProductCategory.FD,
+    "FIXED DEPOSIT": ProductCategory.FD,
+    "NRE": ProductCategory.NRE,
+    "NRE ACCOUNT": ProductCategory.NRE,
+    "PMJDY": ProductCategory.PMJDY,
+    "PMJDY ACCOUNT": ProductCategory.PMJDY,
+    "NET_BANKING": ProductCategory.NET_BANKING,
+    "NET BANKING": ProductCategory.NET_BANKING,
+    "OTHER": ProductCategory.OTHER,
+}
+
+
+def _normalize_product_category(raw_value: str) -> ProductCategory:
+    key = (raw_value or "").strip().upper()
+    normalized = PRODUCT_CATEGORY_MAP.get(key)
+    if not normalized:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid product category. Use one of: UPI, NACH, SAVINGS, HOME_LOAN, CREDIT_CARD, FD, NRE, PMJDY, NET_BANKING, OTHER.",
+        )
+    return normalized
 
 
 def _gen_reference(db: Session) -> str:
@@ -39,6 +72,7 @@ def _make_event(complaint_id: int, event_type: str, description: str,
 @router.post("", response_model=ComplaintCreateResponse, status_code=201)
 def create_complaint(body: ComplaintCreate, db: Session = Depends(get_db)):
     now = datetime.now(timezone.utc)
+    normalized_product = _normalize_product_category(body.product_category)
 
     # ── PII MASKING: Mask sensitive customer data before database storage ──
     masked_account = mask_account(body.customer_account)
@@ -71,7 +105,7 @@ def create_complaint(body: ComplaintCreate, db: Session = Depends(get_db)):
         customer_mobile           = masked_mobile,   # ← MASKED: Show only last 3 digits
         customer_email            = masked_email,    # ← MASKED: Show only domain
         preferred_language        = (body.preferred_language or "EN")[:2].upper(),
-        product_category          = body.product_category,
+        product_category          = normalized_product,
         complaint_text            = body.complaint_text,
         transaction_reference     = body.transaction_reference,
         incident_date             = body.incident_date,
