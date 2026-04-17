@@ -1,0 +1,17 @@
+# Lightweight production dependencies for free-tier deployment
+# Keep runtime lean by excluding heavy ML packages used only in local experiments.
+
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.1
+
+sqlalchemy>=2.0.28
+psycopg2-binary>=2.9.9
+
+pydantic>=2.6.3
+pydantic-settings>=2.2.1
+python-dotenv>=1.0.1
+
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+httpx>=0.27.0
